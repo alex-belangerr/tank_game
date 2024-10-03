@@ -2,7 +2,6 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::env;
 
 use bevy::prelude::KeyCode;
-use bevy::tasks::futures_lite::io::ReadToStringFuture;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct GameBuilder {
@@ -22,7 +21,7 @@ impl Default for GameBuilder {
 
 
 #[derive(Debug, PartialEq, Eq)]
-enum PlayerController {
+pub enum PlayerController {
     Server{
         ip: IpAddr,
         port: u16
@@ -71,7 +70,8 @@ enum ReaderState{
     None
 }
 pub fn get_args() -> GameBuilder {
-    read_args(env::args().into_iter())
+    let args = env::args().into_iter().skip(1).collect::<Vec<String>>();
+    read_args(args.into_iter())
 }
 
 fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
