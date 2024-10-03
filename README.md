@@ -1,2 +1,2 @@
 # tank_game
-AI Tang Game Competition
+AI TanK Game Competition
