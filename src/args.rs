@@ -1,13 +1,13 @@
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::{Ipv4Addr, Ipv6Addr};
 use std::env;
 
-use bevy::prelude::KeyCode;
+use crate::player::PlayerController;
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct GameBuilder {
     pub render: bool,
-    pub player_1: PlayerController,
-    pub player_2: PlayerController,
+    pub player_1: PlayerController<0>,
+    pub player_2: PlayerController<1>,
 }
 impl Default for GameBuilder {
     fn default() -> Self {
@@ -19,48 +19,6 @@ impl Default for GameBuilder {
     }
 }
 
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum PlayerController {
-    Server{
-        ip: IpAddr,
-        port: u16
-    },
-    Control{
-        move_forward: KeyCode,
-        move_backward: KeyCode,
-        rotate_left: KeyCode,
-        rotate_right: KeyCode,
-
-        spin_turret_left: KeyCode,
-        spin_turret_right: KeyCode,
-        shoot: KeyCode
-    }
-}
-impl PlayerController {
-    pub fn wasd() -> PlayerController {
-        PlayerController::Control{
-            move_forward: KeyCode::KeyW,
-            move_backward: KeyCode::KeyS,
-            rotate_left: KeyCode::KeyA,
-            rotate_right: KeyCode::KeyD,
-            spin_turret_left: KeyCode::KeyQ,
-            spin_turret_right: KeyCode::KeyE,
-            shoot: KeyCode::Space,
-        }
-    }
-    pub fn arrow() -> PlayerController{
-        PlayerController::Control{
-            move_forward: KeyCode::ArrowUp,
-            move_backward: KeyCode::ArrowDown,
-            rotate_left: KeyCode::ArrowLeft,
-            rotate_right: KeyCode::ArrowRight,
-            spin_turret_left: KeyCode::KeyI,
-            spin_turret_right: KeyCode::KeyO,
-            shoot: KeyCode::KeyP,
-        }
-    }
-}
 
 #[derive(Debug)]
 enum ReaderState{
