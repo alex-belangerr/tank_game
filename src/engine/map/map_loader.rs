@@ -8,16 +8,22 @@ use super::Map;
 #[derive(Default)]
 pub struct MapLoader;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum MapLoaderError{
-    FileDoesNotExist
+    ParsingError(SpannedError),
+    ReadingError(std::io::Error)
 }
 impl Display for MapLoaderError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MapLoaderError::FileDoesNotExist => {
-                write!(f, "The file does not exist.")
-            }
+            MapLoaderError::ParsingError(_spanned_error) => {
+                todo!()
+                // write!(f, format!("{:#?}", spanned_error))
+            },
+            MapLoaderError::ReadingError(_io_error) => {
+                todo!()
+                // write!(f, format!("{:#?}", io_error))
+            },
         }
     }
 }
@@ -29,12 +35,12 @@ impl Error for MapLoaderError {
 
 impl From<SpannedError> for MapLoaderError{
     fn from(value: SpannedError) -> Self {
-        todo!()
+        MapLoaderError::ParsingError(value)
     }
 }
 impl From<std::io::Error> for MapLoaderError{
     fn from(value: std::io::Error) -> Self {
-        todo!()
+        MapLoaderError::ReadingError(value)
     }
 }
 
