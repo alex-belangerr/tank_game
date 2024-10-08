@@ -1,5 +1,5 @@
 use bevy::{a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Startup}, asset::{AssetApp, AssetPlugin}, core::{FrameCountPlugin, TaskPoolPlugin, TypeRegistrationPlugin}, diagnostic::DiagnosticsPlugin, input::InputPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, time::TimePlugin, DefaultPlugins};
-use map::{Map, map_loader::MapLoader};
+use map::{map_loader::MapLoader, Map, MapPlugin};
 // use bevy_app::{Plugin, PluginGroup, PluginGroupBuilder};
 
 pub mod map;
@@ -58,10 +58,7 @@ impl Plugin for EnginePlugin {
             // .add_plugins(bevy_input::InputPlugin)
             // .add_plugins(bevy_window::WindowPlugin::default())
             // .add_plugins(bevy_a11y::AccessibilityPlugin)
-
-            .init_asset::<Map>()
-            .init_asset_loader::<MapLoader>();
+            .add_plugins(MapPlugin);
         
-        app.add_systems(Startup, map::generate_map);
     }
 }

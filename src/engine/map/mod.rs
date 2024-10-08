@@ -1,4 +1,5 @@
-use bevy::{asset::{Asset, AssetServer, Handle}, prelude::{Component, Res}, reflect::Reflect};
+use bevy::{app::{Plugin, Startup}, asset::{Asset, AssetApp, AssetServer, Handle}, prelude::{Component, Res}, reflect::Reflect};
+use map_loader::MapLoader;
 use serde::{Deserialize, Serialize};
 
 pub mod map_loader;
@@ -26,4 +27,15 @@ pub fn generate_map(asset_server: Res<AssetServer>){
     // });
 
     // println!("{img:?}")
+}
+
+pub struct MapPlugin;
+
+impl Plugin for MapPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app
+            .init_asset::<Map>()
+            .init_asset_loader::<MapLoader>()
+            .add_systems(Startup, generate_map);
+    }
 }
