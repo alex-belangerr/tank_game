@@ -1,12 +1,9 @@
-use std::{error::Error, fmt::{self, Display}, future::Future, io::Cursor};
-use bevy::{asset::{Asset, AssetLoader, AssetServer, AsyncReadExt, Handle}, prelude::{default, Component, Image, Res}, reflect::{Reflect, TypePath}, utils::{BoxedFuture, ConditionalSendFuture}};
+use std::{error::Error, fmt::{self, Display}, future::Future};
+use bevy::{asset::{AssetLoader, AsyncReadExt}, utils::ConditionalSendFuture};
 use ron::de::SpannedError;
-use serde::{Deserialize, Serialize};
 
-type Coord = (usize, usize);
+use super::Map;
 
-const MAX_MAP_WIDTH: usize = 32;
-const MAX_MAP_HEIGHT: usize = 32;
 
 #[derive(Default)]
 pub struct MapLoader;
@@ -67,27 +64,4 @@ impl AssetLoader for MapLoader{
     fn extensions(&self) -> &[&str] {
         &["ron"]
     }
-}
-
-#[derive(Debug, Clone, Asset, Reflect, Deserialize, Serialize)]
-pub struct Map{
-    dim: (usize, usize),
-    walls: Vec<Coord>,
-    spawn_points: Vec<Coord>
-}
-
-
-#[derive(Debug, Clone, Copy, Component)]
-struct Wall;
-
-pub fn generate_map(asset_server: Res<AssetServer>){
-    println!("Hello from generate map");
-    let map: Handle<Map> = asset_server.load("maps/map_1.ron");
-
-    println!("{map:?}")
-    // let img = bmp::open("assets/map_1.bmp").unwrap_or_else(|e| {
-    //     panic!("Failed to open: {}", e);
-    // });
-
-    // println!("{img:?}")
 }
