@@ -21,19 +21,15 @@ pub struct CurrentMap(pub Option<Handle<Map>>);
 struct Wall;
 
 pub fn load_map(asset_server: Res<AssetServer>, mut current_map: ResMut<CurrentMap>, mut next_state: ResMut<NextState<Step>>){
-    println!("Hello from generate map");
     let map: Handle<Map> = asset_server.load("maps/map_1.ron");
 
     let current_map = current_map.as_mut();
     current_map.0 = Some(map);
 
-    println!("Changing state");
     next_state.set(Step::GenerateMap);
 }
 
 pub fn generate_map(current_map: Res<CurrentMap>, maps: Res<Assets<Map>>, mut next_state: ResMut<NextState<Step>>){
-    println!("Generate map");
-
     let current_map = current_map.as_ref();
     let map_id = current_map.0.clone().unwrap().id();
 
@@ -41,7 +37,7 @@ pub fn generate_map(current_map: Res<CurrentMap>, maps: Res<Assets<Map>>, mut ne
         return;
     };
 
-    println!("{map:#?}");
+    println!("{map:?}");
     // generate walls & pick spawn points
     next_state.set(Step::Finished);
 }
