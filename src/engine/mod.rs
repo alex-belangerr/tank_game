@@ -1,5 +1,5 @@
 use bevy::{
-    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Startup}, asset::{AssetApp, AssetPlugin}, core::{FrameCountPlugin, TaskPoolPlugin, TypeRegistrationPlugin}, diagnostic::DiagnosticsPlugin, input::InputPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, scene::ScenePlugin, state::app::StatesPlugin, time::TimePlugin, window::WindowPlugin, DefaultPlugins, MinimalPlugins
+    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, input::InputPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, MinimalPlugins
 };
 use map::MapPlugin;
 // use bevy_app::{Plugin, PluginGroup, PluginGroupBuilder};
@@ -18,8 +18,6 @@ impl Plugin for EnginePlugin {
             .add_plugins(TransformPlugin)
             .add_plugins(HierarchyPlugin)
             .add_plugins(DiagnosticsPlugin)
-            .add_plugins(InputPlugin)
-            // .add_plugins(WindowPlugin::default())
             .add_plugins(AccessibilityPlugin)
             .add_plugins(AssetPlugin::default())
             .add_plugins(StatesPlugin)

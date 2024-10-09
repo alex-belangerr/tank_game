@@ -1,6 +1,7 @@
 use bevy::{
     prelude::*,
 };
+use player::PlayerControllerPlugin;
 
 // use bevy::prelude::AssetPlugin;
 
@@ -20,9 +21,9 @@ fn main() {
         // .add_plugins(AssetPlugin::default())
         // .add_systems(Startup, map::generate_map);
 
-
-    app.add_plugins(game_builder.player_1);
-    app.add_plugins(game_builder.player_2);
+    app.add_plugins(PlayerControllerPlugin(game_builder.player_1, game_builder.player_2));
+    // app.add_plugins(game_builder.player_1);
+    // app.add_plugins(game_builder.player_2);
 
     if game_builder.render {
         app.add_plugins(render::RenderPlugin);

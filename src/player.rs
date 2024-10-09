@@ -1,8 +1,36 @@
 use std::net::IpAddr;
 
-use bevy::{app::Plugin, prelude::KeyCode};
+use bevy::{app::{Plugin, Update}, input::InputPlugin, prelude::KeyCode};
 
-#[derive(Debug, PartialEq, Eq)]
+pub struct PlayerControllerPlugin<const P_FLAG_1: u32, const P_FLAG_2: u32>(
+    pub PlayerController<P_FLAG_1>,
+    pub PlayerController<P_FLAG_2>
+);
+
+impl<const P_FLAG_1: u32, const P_FLAG_2: u32> Plugin for PlayerControllerPlugin<P_FLAG_1, P_FLAG_2>{
+    fn build(&self, app: &mut bevy::prelude::App) {
+        match (&self.0, &self.1) {
+            (_, PlayerController::Control{ .. }) |
+            (PlayerController::Control { .. }, _) => {
+                app.add_plugins(InputPlugin);
+            },
+            _ => {}
+        }
+        match (&self.0, &self.1) {
+            (_, PlayerController::Server{ .. }) |
+            (PlayerController::Server { .. }, _) => {
+                // sever initialization code
+            },
+            _ => {}
+        }
+
+        // Copy values over
+        app.add_plugins(self.0)
+            .add_plugins(self.1);
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PlayerController<const P_FLAG: u32> {
     Server{
         ip: IpAddr,
@@ -44,9 +72,25 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
     }
 }
 
+pub fn keyboard_input<const P_FLAG: u32>() {
 
-impl<const P_FLAG: u32>  Plugin for PlayerController<P_FLAG> {
+}
+
+impl<const P_FLAG: u32> Plugin for PlayerController<P_FLAG> {
     fn build(&self, app: &mut bevy::prelude::App) {
         println!("ADDING PLAYER PLUGIN {P_FLAG}");
+        match &self {
+            PlayerController::Server { .. } => { // todo!() replace placeholder with a higher order function that interacts with server
+                println!("Server based control");
+                // create thread to handle server inputs
+                // initialize other server with our data
+                //  - tank info
+                //  - our server info (ip & port)
+            },
+            PlayerController::Control { .. } => { // todo!() replace placeholder with a higher order function that creates keyboard_input using key mapping
+                // app.add_systems(Update, keyboard_input::<P_FLAG>);
+                println!("key board controls");
+            },
+        }
     }
 }
