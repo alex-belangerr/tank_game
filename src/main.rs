@@ -17,16 +17,14 @@ fn main() {
 
     // todo!() add game plugin
     
-    app.add_plugins(engine::EnginePlugin);
+    app.add_plugins(engine::EnginePlugin(game_builder.render));
         // .add_plugins(AssetPlugin::default())
         // .add_systems(Startup, map::generate_map);
 
     app.add_plugins(PlayerControllerPlugin(game_builder.player_1, game_builder.player_2));
-    // app.add_plugins(game_builder.player_1);
-    // app.add_plugins(game_builder.player_2);
-
+    
     if game_builder.render {
-        app.add_plugins(render::RenderPlugin);
+        app.add_plugins(render::GameRenderPlugin);
     }
     
     app.run();

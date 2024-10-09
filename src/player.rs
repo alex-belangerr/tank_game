@@ -9,13 +9,14 @@ pub struct PlayerControllerPlugin<const P_FLAG_1: u32, const P_FLAG_2: u32>(
 
 impl<const P_FLAG_1: u32, const P_FLAG_2: u32> Plugin for PlayerControllerPlugin<P_FLAG_1, P_FLAG_2>{
     fn build(&self, app: &mut bevy::prelude::App) {
-        match (&self.0, &self.1) {
-            (_, PlayerController::Control{ .. }) |
-            (PlayerController::Control { .. }, _) => {
+        match (&self.0, &self.1, app.is_plugin_added::<InputPlugin>()) {
+            (_, PlayerController::Control{ .. }, false) |
+            (PlayerController::Control { .. }, _, false) => {
                 app.add_plugins(InputPlugin);
             },
             _ => {}
         }
+        
         match (&self.0, &self.1) {
             (_, PlayerController::Server{ .. }) |
             (PlayerController::Server { .. }, _) => {
