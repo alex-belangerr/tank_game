@@ -27,7 +27,7 @@ impl Plugin for EnginePlugin {
             },
         };
         app
-            .add_plugins(MapPlugin);
+            .add_plugins(MapPlugin(self.0));
         
     }
 }
