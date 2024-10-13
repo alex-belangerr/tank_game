@@ -1,6 +1,11 @@
 use std::net::IpAddr;
 
-use bevy::{app::{Plugin, Update}, input::InputPlugin, prelude::KeyCode};
+use bevy::{app::{Plugin, Update}, ecs::entity, input::{ButtonInput, InputPlugin}, prelude::{Commands, Component, Entity, Event, EventWriter, KeyCode, Query, Res, Resource, With}};
+
+use crate::engine::tank::Instruction;
+
+#[derive(Component)]
+pub struct PlayerID<const P_FLAG: u32>;
 
 pub struct PlayerControllerPlugin<const P_FLAG_1: u32, const P_FLAG_2: u32>(
     pub PlayerController<P_FLAG_1>,
@@ -73,7 +78,74 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
     }
 }
 
-pub fn keyboard_input<const P_FLAG: u32>() {
+#[derive(Resource)]
+pub struct PlayerKeyBind<const P_FLAG: u32>{
+    pub move_forward: KeyCode,
+    pub move_backward: KeyCode,
+    pub rotate_left: KeyCode,
+    pub rotate_right: KeyCode,
+
+    pub spin_turret_left: KeyCode,
+    pub spin_turret_right: KeyCode,
+    pub shoot: KeyCode
+}
+
+impl<const P_FLAG: u32> From<&PlayerController<P_FLAG>> for PlayerKeyBind<P_FLAG> {
+    fn from(value: &PlayerController<P_FLAG>) -> Self {
+        let PlayerController::Control{
+            move_forward,
+            move_backward,
+            rotate_left,
+            rotate_right,
+        
+            spin_turret_left,
+            spin_turret_right,
+            shoot
+        } = *value else {
+            panic!("Invalid call");
+        };
+
+        PlayerKeyBind{
+            move_forward,
+            move_backward,
+            rotate_left,
+            rotate_right,
+            spin_turret_left,
+            spin_turret_right,
+            shoot,
+        }
+    }
+}
+
+pub fn keyboard_input<const P_FLAG: u32>(
+    player_keybinding: Res<PlayerKeyBind<P_FLAG>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mut event_writer: EventWriter<Instruction<P_FLAG>>
+){
+    if keys.pressed(player_keybinding.move_forward) {
+        event_writer.send(Instruction::move_forward);
+    }
+    else if keys.pressed(player_keybinding.move_backward) {
+        event_writer.send(Instruction::move_backward);
+    }
+
+    if keys.pressed(player_keybinding.rotate_left) {
+        event_writer.send(Instruction::rotate_left);
+    }
+    else if keys.pressed(player_keybinding.rotate_right) {
+        event_writer.send(Instruction::rotate_right);
+    }
+
+    if keys.pressed(player_keybinding.spin_turret_left) {
+        event_writer.send(Instruction::spin_turret_left);
+    }
+    else if keys.pressed(player_keybinding.spin_turret_right) {
+        event_writer.send(Instruction::spin_turret_right);
+    }
+
+    if keys.pressed(player_keybinding.shoot) {
+        event_writer.send(Instruction::shoot);
+    }
 
 }
 
@@ -89,7 +161,8 @@ impl<const P_FLAG: u32> Plugin for PlayerController<P_FLAG> {
                 //  - our server info (ip & port)
             },
             PlayerController::Control { .. } => { // todo!() replace placeholder with a higher order function that creates keyboard_input using key mapping
-                // app.add_systems(Update, keyboard_input::<P_FLAG>);
+                app.insert_resource::<PlayerKeyBind<P_FLAG>>(self.into());
+                app.add_systems(Update, keyboard_input::<P_FLAG>);
                 println!("key board controls");
             },
         }

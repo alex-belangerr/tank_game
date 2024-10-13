@@ -13,6 +13,8 @@ use gen_state::Step;
 use map_loader::MapLoader;
 use serde::{Deserialize, Serialize};
 
+use crate::{engine::tank::{create_minimal_tank, create_tank}, player::PlayerID};
+
 pub mod map_loader;
 pub mod gen_state;
 pub type Coord = (usize, usize);
@@ -27,7 +29,7 @@ pub struct Map{
 #[derive(Debug, Clone, Resource, Default)]
 pub struct CurrentMap(pub Option<Handle<Map>>);
 
-const WALL_SIZE: f32 = 1.;
+const WALL_SIZE: f32 = 32.;
 
 #[derive(Debug, Clone, Copy, Component)]
 struct Wall;
@@ -78,6 +80,49 @@ pub fn generate_minimal_map(
         walls
     );
 
+    let p1_spawn = {
+        let i1 = rand::random::<usize>() % map.spawn_points.len();
+
+        &map.spawn_points[i1]
+    };
+
+    let p2_spawn = map.spawn_points
+        .iter()
+        .filter(|&&point| point != *p1_spawn)
+        .fold(
+            (*p1_spawn, 0isize),
+            |acc, next| {
+                let dist = (next.0 as isize - p1_spawn.0 as isize).pow(2) + (next.1 as isize - p1_spawn.1 as isize).pow(2);
+                
+                match dist > acc.1 {
+                    true => (*next, dist),
+                    false => acc
+                }
+            }
+        ).0;
+
+    {
+        let p1 = create_minimal_tank(
+            p1_spawn.0 as f32 * WALL_SIZE,
+            p1_spawn.1 as f32 * WALL_SIZE,
+            0,
+            &mut commands
+        );
+        commands.entity(p1)
+            .insert(PlayerID::<0>);
+    }
+
+    {
+        let p2 = create_minimal_tank(
+            p2_spawn.0 as f32 * WALL_SIZE,
+            p2_spawn.1 as f32 * WALL_SIZE,
+            1,
+            &mut commands
+        );
+        commands.entity(p2)
+            .insert(PlayerID::<1>);
+    }
+    
     next_state.set(Step::Finished);
 }
 
@@ -136,7 +181,64 @@ pub fn generate_map(
         walls
     );
 
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn((
+        Camera2dBundle{
+            transform: Transform{
+                translation: Vec3 {
+                    x: map.dim.0 as f32 / 2. * WALL_SIZE,
+                    y: map.dim.1 as f32 / 2. * WALL_SIZE,
+                    z: 1. 
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+    ));
+
+    
+    let p1_spawn = {
+        let i1 = rand::random::<usize>() % map.spawn_points.len();
+
+        &map.spawn_points[i1]
+    };
+
+    let p2_spawn = map.spawn_points
+        .iter()
+        .filter(|&&point| point != *p1_spawn)
+        .fold(
+            (*p1_spawn, 0isize),
+            |acc, next| {
+                let dist = (next.0 as isize - p1_spawn.0 as isize).pow(2) + (next.1 as isize - p1_spawn.1 as isize).pow(2);
+                
+                match dist > acc.1 {
+                    true => (*next, dist),
+                    false => acc
+                }
+            }
+        ).0;
+    {
+        let p1 = create_tank(
+            p1_spawn.0 as f32 * WALL_SIZE,
+            p1_spawn.1 as f32 * WALL_SIZE,
+            0,
+            &mut commands,
+            &asset_server
+        );
+        commands.entity(p1)
+            .insert(PlayerID::<0>);
+    }
+
+    {
+        let p2 = create_tank(
+            p2_spawn.0 as f32 * WALL_SIZE,
+            p2_spawn.1 as f32 * WALL_SIZE,
+            1,
+            &mut commands,
+            &asset_server
+        );
+        commands.entity(p2)
+            .insert(PlayerID::<1>);
+    }
 
 
     next_state.set(Step::Finished);
