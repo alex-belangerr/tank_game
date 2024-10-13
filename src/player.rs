@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use bevy::{app::{Plugin, Update}, ecs::entity, input::{ButtonInput, InputPlugin}, prelude::{Commands, Component, Entity, Event, EventWriter, KeyCode, Query, Res, Resource, With}};
+use bevy::{app::{Plugin, Update}, input::{ButtonInput, InputPlugin}, prelude::{Component, EventWriter, KeyCode, Res, Resource}};
 
 use crate::engine::tank::Instruction;
 
@@ -123,28 +123,28 @@ pub fn keyboard_input<const P_FLAG: u32>(
     mut event_writer: EventWriter<Instruction<P_FLAG>>
 ){
     if keys.pressed(player_keybinding.move_forward) {
-        event_writer.send(Instruction::move_forward);
+        event_writer.send(Instruction::MoveForward);
     }
     else if keys.pressed(player_keybinding.move_backward) {
-        event_writer.send(Instruction::move_backward);
+        event_writer.send(Instruction::MoveBackward);
     }
 
     if keys.pressed(player_keybinding.rotate_left) {
-        event_writer.send(Instruction::rotate_left);
+        event_writer.send(Instruction::RotateLeft);
     }
     else if keys.pressed(player_keybinding.rotate_right) {
-        event_writer.send(Instruction::rotate_right);
+        event_writer.send(Instruction::RotateRight);
     }
 
     if keys.pressed(player_keybinding.spin_turret_left) {
-        event_writer.send(Instruction::spin_turret_left);
+        event_writer.send(Instruction::SpinTurretLeft);
     }
     else if keys.pressed(player_keybinding.spin_turret_right) {
-        event_writer.send(Instruction::spin_turret_right);
+        event_writer.send(Instruction::SpinTurretRight);
     }
 
     if keys.pressed(player_keybinding.shoot) {
-        event_writer.send(Instruction::shoot);
+        event_writer.send(Instruction::Shoot);
     }
 
 }

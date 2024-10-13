@@ -1,17 +1,17 @@
-use bevy::{asset::AssetServer, ecs::world::Command, prelude::{Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With}, sprite::SpriteBundle};
+use bevy::{asset::AssetServer, prelude::{Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With}, sprite::SpriteBundle};
 
 use crate::player::PlayerID;
 
 #[derive(Debug, Clone, Copy, Event)]
 pub enum Instruction<const P_FLAG: u32> {
-    move_forward,
-    move_backward,
-    rotate_left,
-    rotate_right,
+    MoveForward,
+    MoveBackward,
+    RotateLeft,
+    RotateRight,
 
-    spin_turret_left,
-    spin_turret_right,
-    shoot
+    SpinTurretLeft,
+    SpinTurretRight,
+    Shoot
 }
 
 pub fn process_tank_instruction<const P_FLAG: u32>(
