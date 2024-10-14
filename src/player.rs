@@ -58,10 +58,10 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
         PlayerController::Control{
             move_forward: KeyCode::KeyW,
             move_backward: KeyCode::KeyS,
-            rotate_left: KeyCode::KeyA,
-            rotate_right: KeyCode::KeyD,
-            spin_turret_left: KeyCode::KeyQ,
-            spin_turret_right: KeyCode::KeyE,
+            rotate_left: KeyCode::KeyD,
+            rotate_right: KeyCode::KeyA,
+            spin_turret_left: KeyCode::KeyE,
+            spin_turret_right: KeyCode::KeyQ,
             shoot: KeyCode::Space,
         }
     }
@@ -69,10 +69,10 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
         PlayerController::Control{
             move_forward: KeyCode::ArrowUp,
             move_backward: KeyCode::ArrowDown,
-            rotate_left: KeyCode::ArrowLeft,
-            rotate_right: KeyCode::ArrowRight,
-            spin_turret_left: KeyCode::KeyI,
-            spin_turret_right: KeyCode::KeyO,
+            rotate_left: KeyCode::ArrowRight,
+            rotate_right: KeyCode::ArrowLeft,
+            spin_turret_left: KeyCode::KeyO,
+            spin_turret_right: KeyCode::KeyI,
             shoot: KeyCode::KeyP,
         }
     }
