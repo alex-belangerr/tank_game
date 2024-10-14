@@ -1,10 +1,17 @@
+//! This module defines the `MapLoader` for loading map assets in RON format.
+//! It handles the parsing and reading of map files, providing error handling
+//! for any issues that may arise during the process.
 use std::{error::Error, fmt::{self, Display}, future::Future};
 use bevy::{asset::{AssetLoader, AsyncReadExt}, utils::ConditionalSendFuture};
 use ron::de::SpannedError;
 
 use super::Map;
 
-
+/// An enumeration of errors that may occur during the loading of map assets.
+/// 
+/// # Variants
+/// - `ParsingError`: Indicates an error occurred while parsing the RON data.
+/// - `ReadingError`: Indicates an error occurred while reading the file.
 #[derive(Default)]
 pub struct MapLoader;
 

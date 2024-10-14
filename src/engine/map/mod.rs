@@ -1,3 +1,5 @@
+//! This module manages map loading and generation in a Bevy-based game,
+//! including wall creation and player spawn point selection for tank gameplay.
 use bevy::{
     app::{Plugin, Startup, Update
     },
@@ -19,6 +21,12 @@ pub mod map_loader;
 pub mod gen_state;
 pub type Coord = (usize, usize);
 
+/// Represents a game map with dimensions, walls, and spawn points for tanks.
+/// 
+/// # Fields
+/// - `dim`: The dimensions of the map as a tuple of width and height.
+/// - `walls`: A vector of coordinates representing the positions of walls on the map.
+/// - `spawn_points`: A vector of coordinates representing possible spawn points for tanks.
 #[derive(Debug, Clone, Asset, Reflect, Deserialize, Serialize)]
 pub struct Map{
     dim: (usize, usize),
@@ -26,14 +34,25 @@ pub struct Map{
     spawn_points: Vec<Coord>
 }
 
+/// Holds the current map being used in the game, referenced by its asset handle.
+/// 
+/// # Fields
+/// - `0`: An optional handle to the current map asset.
 #[derive(Debug, Clone, Resource, Default)]
 pub struct CurrentMap(pub Option<Handle<Map>>);
 
 const WALL_SIZE: f32 = 32.;
 
+/// A component representing a wall in the game.
 #[derive(Debug, Clone, Copy, Component)]
 struct Wall;
 
+/// Loads the specified map from the asset server and sets it as the current map.
+/// 
+/// # Parameters
+/// - `asset_server`: The asset server resource for loading map assets.
+/// - `current_map`: The current map resource to store the loaded map.
+/// - `next_state`: A mutable reference to the next state in the game state management.
 pub fn load_map(asset_server: Res<AssetServer>, mut current_map: ResMut<CurrentMap>, mut next_state: ResMut<NextState<Step>>){
     let map: Handle<Map> = asset_server.load("maps/map_1.ron");
 
@@ -43,6 +62,13 @@ pub fn load_map(asset_server: Res<AssetServer>, mut current_map: ResMut<CurrentM
     next_state.set(Step::GenerateMap);
 }
 
+/// Generates a minimal map by spawning walls and two tanks at random spawn points.
+/// 
+/// # Parameters
+/// - `commands`: The command buffer for spawning entities.
+/// - `current_map`: The current map resource containing the loaded map.
+/// - `maps`: The resource containing all loaded maps.
+/// - `next_state`: A mutable reference to the next state in the game state management.
 pub fn generate_minimal_map(
     mut commands: Commands,
     
@@ -122,10 +148,18 @@ pub fn generate_minimal_map(
         commands.entity(p2)
             .insert(PlayerID::<1>);
     }
-    
+
     next_state.set(Step::Finished);
 }
 
+/// Generates a complete map by spawning walls, a camera, and two tanks at random spawn points.
+/// 
+/// # Parameters
+/// - `commands`: The command buffer for spawning entities.
+/// - `current_map`: The current map resource containing the loaded map.
+/// - `maps`: The resource containing all loaded maps.
+/// - `asset_server`: The asset server resource for loading textures.
+/// - `next_state`: A mutable reference to the next state in the game state management.
 pub fn generate_map(
     mut commands: Commands,
     
@@ -244,6 +278,10 @@ pub fn generate_map(
     next_state.set(Step::Finished);
 }
 
+/// A Bevy plugin for managing map loading and generation.
+/// 
+/// # Fields
+/// - `bool`: A flag indicating whether to generate a minimal map(headless) or a complete map.
 pub struct MapPlugin(pub bool);
 
 impl Plugin for MapPlugin {

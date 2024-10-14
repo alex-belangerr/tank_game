@@ -3,7 +3,6 @@ use bevy::{
 };
 use map::MapPlugin;
 use tank::{process_tank_instruction, Instruction};
-// use bevy_app::{Plugin, PluginGroup, PluginGroupBuilder};
 
 pub mod map;
 pub mod tank;

@@ -1,12 +1,19 @@
+//! This module provides functionality for player control in the game.
+//! It includes player input handling, player control definitions, 
+//! and the configuration for controlling tanks.
+
 use std::net::IpAddr;
 
 use bevy::{app::{Plugin, Update}, input::{ButtonInput, InputPlugin}, prelude::{Component, EventWriter, KeyCode, Res, Resource}};
 
 use crate::engine::tank::Instruction;
 
+
+/// Represents a unique identifier for a player.
 #[derive(Component)]
 pub struct PlayerID<const P_FLAG: u32>;
 
+/// A plugin that manages player controls for two players.
 pub struct PlayerControllerPlugin<const P_FLAG_1: u32, const P_FLAG_2: u32>(
     pub PlayerController<P_FLAG_1>,
     pub PlayerController<P_FLAG_2>
@@ -36,6 +43,7 @@ impl<const P_FLAG_1: u32, const P_FLAG_2: u32> Plugin for PlayerControllerPlugin
     }
 }
 
+/// Represents the type of control a player can have.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PlayerController<const P_FLAG: u32> {
     Server{
@@ -54,6 +62,8 @@ pub enum PlayerController<const P_FLAG: u32> {
     }
 }
 impl<const P_FLAG: u32> PlayerController<P_FLAG> {
+    
+    /// Creates a `PlayerController` configured for WASD controls.
     pub fn wasd() -> PlayerController<P_FLAG> {
         PlayerController::Control{
             move_forward: KeyCode::KeyW,
@@ -65,6 +75,8 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
             shoot: KeyCode::Space,
         }
     }
+
+    /// Creates a `PlayerController` configured for arrow key controls.
     pub fn arrow() -> PlayerController<P_FLAG>{
         PlayerController::Control{
             move_forward: KeyCode::ArrowUp,
@@ -78,6 +90,12 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
     }
 }
 
+/// Handles keyboard input for player controls and sends instructions based on key presses.
+/// 
+/// # Parameters
+/// - `player_keybinding`: Resource containing key bindings for the player.
+/// - `keys`: Resource containing the current state of key inputs.
+/// - `event_writer`: Event writer for sending instructions based on input.
 #[derive(Resource)]
 pub struct PlayerKeyBind<const P_FLAG: u32>{
     pub move_forward: KeyCode,

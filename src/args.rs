@@ -1,8 +1,17 @@
+//! This module handles command-line arguments for configuring the game settings.
+//! It defines the `GameBuilder` struct for creating game instances and includes
+//! functionality to parse command-line arguments to customize player controls and
+//! rendering settings.
+
 use std::net::{Ipv4Addr, Ipv6Addr};
 use std::env;
 
 use crate::player::PlayerController;
 
+/// A builder for configuring game settings.
+///
+/// This struct allows customization of the game by specifying player controls
+/// and rendering options.
 #[derive(Debug, PartialEq, Eq)]
 pub struct GameBuilder {
     pub render: bool,
@@ -19,7 +28,6 @@ impl Default for GameBuilder {
     }
 }
 
-
 #[derive(Debug)]
 enum ReaderState{
     Render,
@@ -27,11 +35,25 @@ enum ReaderState{
     Player2,
     None
 }
+
+/// Parses command-line arguments and constructs a `GameBuilder` instance.
+///
+/// # Returns
+/// A `GameBuilder` instance configured based on the provided command-line
+/// arguments.
 pub fn get_args() -> GameBuilder {
     let args = env::args().into_iter().skip(1).collect::<Vec<String>>();
     read_args(args.into_iter())
 }
 
+/// Reads command-line arguments from the provided iterator and constructs
+/// a `GameBuilder` instance.
+///
+/// # Parameters
+/// - `args`: An iterator over command-line arguments.
+///
+/// # Returns
+/// A `GameBuilder` instance configured based on the parsed arguments.
 fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
     let mut state: ReaderState = ReaderState::None;
 
