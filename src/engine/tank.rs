@@ -4,6 +4,7 @@
 use std::f32::consts::PI;
 
 use bevy::{asset::AssetServer, math::Vec3, prelude::{BuildChildren, Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With, Without}, sprite::SpriteBundle, time::Time};
+use bevy_rapier2d::prelude::Collider;
 
 use crate::player::PlayerID;
 
@@ -121,6 +122,8 @@ pub struct Tank{
 #[derive(Component)]
 pub struct Turret;
 
+const TANK_SIZE: f32 = 32.;
+
 const TANK_HEIGHT: f32 = 1.;
 const TURRET_HEIGHT: f32 = 3.;
 
@@ -155,7 +158,8 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
             translation: Vec3{ x: x, y: y, z: TANK_HEIGHT },
             ..Default::default()
         },
-        GlobalTransform::default()
+        GlobalTransform::default(),
+        Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),
     )).id();
 
     commands.entity(tank_id).add_child(turret_id);
@@ -204,7 +208,8 @@ pub fn create_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands, asset_s
             },
             texture: asset_server.load("textures\\tanks\\hull.png"),
             ..Default::default()
-        }
+        },
+        Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),
     )).id();
 
     commands.entity(tank_id).add_child(turret_id);

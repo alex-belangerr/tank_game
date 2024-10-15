@@ -1,6 +1,7 @@
 use bevy::{
     a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Update}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
+use bevy_rapier2d::{plugin::{NoUserData, RapierPhysicsPlugin}, render::RapierDebugRenderPlugin};
 use map::MapPlugin;
 use tank::{process_tank_instruction, Instruction};
 
@@ -13,7 +14,10 @@ impl Plugin for EnginePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         match self.0 {
             true => {
-                app.add_plugins(DefaultPlugins);
+                app.add_plugins(DefaultPlugins)
+                    .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(16.0))
+                    //DEBUG
+                    .add_plugins(RapierDebugRenderPlugin::default());
             },
             false => {
                 app.add_plugins(MinimalPlugins)

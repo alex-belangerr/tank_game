@@ -11,6 +11,7 @@ use bevy::{
     reflect::Reflect,
     sprite::Sprite
 };
+use bevy_rapier2d::prelude::Collider;
 use gen_state::Step;
 use map_loader::MapLoader;
 use serde::{Deserialize, Serialize};
@@ -86,7 +87,7 @@ pub fn generate_minimal_map(
 
     println!("{map:?}");
     // generate walls & pick spawn points
-    type WallBundle = (Wall,Transform,GlobalTransform);
+    type WallBundle = (Wall,Transform,GlobalTransform, Collider);
     let walls: Vec<WallBundle> = map.walls.iter()
         .map(|(x, y)| (*x as f32, *y as f32))
         .map( |(x, y)| (
@@ -99,7 +100,8 @@ pub fn generate_minimal_map(
                 },
                 ..Default::default()
             },
-            Default::default()
+            Default::default(),
+            Collider::cuboid(WALL_SIZE/8., WALL_SIZE/8.)
         ))
         .collect();
     commands.spawn_batch(
@@ -184,6 +186,8 @@ pub fn generate_map(
         Transform,
         GlobalTransform,
 
+        Collider,
+
         Sprite,
         Handle<Image>,
         Visibility,
@@ -203,6 +207,8 @@ pub fn generate_map(
                 ..Default::default()
             },
             Default::default(),
+
+            Collider::cuboid(WALL_SIZE/2., WALL_SIZE/2.),
             
             Default::default(),
             asset_server.load("textures\\map\\wall.png"),
