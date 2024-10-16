@@ -72,7 +72,7 @@ The `tank_game` engine allows customization of game settings through various com
   - Set up **default rendering** mode with visual outputs.
 
 ## User Input Processing
-- [-] **Movement**  
+- [X] **Movement**  
   - Implement player-controlled movement inputs for tanks.
 - [X] **Turret Rotation**  
   - Add controls to rotate turrets based on user input.
@@ -96,11 +96,11 @@ The `tank_game` engine allows customization of game settings through various com
   - Update game state when a tank is destroyed and determine the winner.
 
 ## Collision Handling
-- [ ] **Wall and Tank Collisions**  
+- [X] **Wall and Tank Collisions**  
   - Implement collision detection to prevent tanks from moving through walls and other tanks.
 
 ## Player Inputs
-- [x] **Keyboard Inputs**  
+- [X] **Keyboard Inputs**  
   - Set up controls using keyboard input to move and interact.
 - [ ] **REST API Inputs**  
   - Integrate support for controlling the game using REST API inputs.
