@@ -74,7 +74,8 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
         Transform{
             translation: Vec3{ x: 0., y: 0., z: TURRET_HEIGHT },
             ..Default::default()
-        }
+        },
+        GlobalTransform::default()
     )).id();
 
     let tank_id = commands.spawn((

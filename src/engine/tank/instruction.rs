@@ -1,6 +1,6 @@
-use std::{f32::consts::PI, mem};
+use std::f32::consts::PI;
 
-use bevy::{color::palettes::css::GREEN, math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, EventWriter, Gizmos, GlobalTransform, Query, Res, Transform, With, Without}, time::Time};
+use bevy::{math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, EventWriter, GlobalTransform, Query, Res, Transform, With, Without}, time::Time};
 use bevy_rapier2d::{plugin::RapierContext, prelude::{Collider, QueryFilter, ShapeCastOptions}};
 
 use crate::player::PlayerID;
@@ -64,7 +64,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
 
     rapier_context: Res<RapierContext>,
 
-    mut gizmos: Gizmos
+    // mut gizmos: Gizmos
 ){
     instruction_events.read()
         .for_each(|inst| {
@@ -83,7 +83,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                             &rapier_context,
                             player_entity,
 
-                            &mut gizmos
+                            // &mut gizmos
                         ),
                         Instruction::RotateRight => update_rotation::<false>(
                             transform,
@@ -92,7 +92,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                             &rapier_context,
                             player_entity,
 
-                            &mut gizmos
+                            // &mut gizmos
                         ),
                         Instruction::MoveForward => {
                             transform.translation = new_move_pos::<false>(
@@ -103,7 +103,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                                 &rapier_context,
                                 player_entity,
 
-                                &mut gizmos
+                                // &mut gizmos
                             );
                         },
                         Instruction::MoveBackward => {
@@ -115,7 +115,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                                 &rapier_context,
                                 player_entity,
 
-                                &mut gizmos
+                                // &mut gizmos
                             );
                         }
 
@@ -167,7 +167,7 @@ fn update_rotation<const DEBUG: bool>(
     rapier_context: &Res<RapierContext>,
     player: Entity,
 
-    gizmos: &mut Gizmos
+    // gizmos: &mut Gizmos
 ) {
     let pos = transform.translation;
     let new_rot = {
@@ -177,7 +177,7 @@ fn update_rotation<const DEBUG: bool>(
     };
     
     if DEBUG {
-        gizmos.rect_2d(Vec2::new(pos.x, pos.y), new_rot, Vec2::splat(TANK_SIZE), GREEN);
+        // gizmos.rect_2d(Vec2::new(pos.x, pos.y), new_rot, Vec2::splat(TANK_SIZE), GREEN);
     }
 
     let cast_shape = {
@@ -224,13 +224,13 @@ fn new_move_pos<const DEBUG: bool>(
     rapier_context: &Res<RapierContext>,
     player: Entity,
 
-    gizmos: &mut Gizmos
+    // gizmos: &mut Gizmos
 ) -> Vec3{
     
     let new_pos = start_pos + TANK_MOVE_SPEED * dir * delta_time;
     let rot = get_rotation_z(Vec2::new(dir.x, dir.y));
     if DEBUG {
-        gizmos.rect_2d(Vec2::new(new_pos.x, new_pos.y), rot, Vec2::splat(TANK_SIZE), GREEN);
+        // gizmos.rect_2d(Vec2::new(new_pos.x, new_pos.y), rot, Vec2::splat(TANK_SIZE), GREEN);
     }
 
     let cast_shape = {

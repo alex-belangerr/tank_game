@@ -14,8 +14,7 @@ impl Plugin for EnginePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         match self.0 {
             true => {
-                app.add_plugins(DefaultPlugins)
-                    .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(8.0));
+                app.add_plugins(DefaultPlugins);
                     //DEBUG
                     // .add_plugins(RapierDebugRenderPlugin::default());
             },
@@ -32,6 +31,7 @@ impl Plugin for EnginePlugin {
             },
         };
         app
+            .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(8.0))
             .add_plugins(MapPlugin(self.0))
             .add_plugins(TankPlugin(self.0));
     }

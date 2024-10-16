@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, marker::PhantomData};
 
-use bevy::{color::palettes::css::{BLUE, GREEN, RED}, math::Vec2, prelude::{Component, Entity, Gizmos, GlobalTransform, Query, Res, With}};
+use bevy::{math::Vec2, prelude::{Component, Entity, GlobalTransform, Query, Res, With}};
 use bevy_rapier2d::{na::{Matrix2, Vector2}, plugin::RapierContext, prelude::QueryFilter};
 
 use crate::engine::map::Wall;
@@ -91,7 +91,7 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
     rapier_context: Res<RapierContext>,
 
-    mut gizmos: Gizmos
+    // mut gizmos: Gizmos
 ) {
     for (mut vision, transform, player_entity) in &mut rays {
         
@@ -124,7 +124,7 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
         rays.iter_mut()
             .for_each(|hit_marker| {
                 if DEBUG {
-                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                    // gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
                 }
                 
                 let ray_cast = rapier_context.cast_ray(
@@ -140,16 +140,16 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
                         match (tanks.contains(entity), walls.contains(entity)) {
                             (true, false) => {
                                 if DEBUG {
-                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    gizmos.circle_2d(hit_point, 5., RED);
+                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    // gizmos.circle_2d(hit_point, 5., RED);
                                 }
                                 
                                 Some(VisionHit::Enemy(toi))
                             },
                             (false, true) => {
                                 if DEBUG {
-                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    gizmos.circle_2d(hit_point, 5., BLUE);
+                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    // gizmos.circle_2d(hit_point, 5., BLUE);
                                 }
                                 
                                 Some(VisionHit::Wall(toi))
@@ -209,7 +209,7 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
     rapier_context: Res<RapierContext>,
 
-    mut gizmos: Gizmos
+    // mut gizmos: Gizmos
 ) {
     for (mut vision, tank, player_entity) in &mut rays {
 
@@ -244,7 +244,7 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
         rays.iter_mut()
             .for_each(|hit_marker| {
                 if DEBUG {
-                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                    // gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
                 }
                 
                 let ray_cast = rapier_context.cast_ray(
@@ -260,16 +260,16 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
                         match (tanks.contains(entity), walls.contains(entity)) {
                             (true, false) => {
                                 if DEBUG {
-                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    gizmos.circle_2d(hit_point, 5., RED);
+                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    // gizmos.circle_2d(hit_point, 5., RED);
                                 }
                                 
                                 Some(VisionHit::Enemy(toi))
                             },
                             (false, true) => {
                                 if DEBUG {
-                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    gizmos.circle_2d(hit_point, 5., BLUE);
+                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    // gizmos.circle_2d(hit_point, 5., BLUE);
                                 }
                                 
                                 Some(VisionHit::Wall(toi))
