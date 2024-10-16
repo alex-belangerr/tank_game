@@ -1,11 +1,11 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, mem};
 
-use bevy::{color::palettes::css::GREEN, math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, Gizmos, Query, Res, Transform, With, Without}, time::Time};
+use bevy::{color::palettes::css::GREEN, math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, EventWriter, Gizmos, GlobalTransform, Query, Res, Transform, With, Without}, time::Time};
 use bevy_rapier2d::{plugin::RapierContext, prelude::{Collider, QueryFilter, ShapeCastOptions}};
 
 use crate::player::PlayerID;
 
-use super::gen::{Tank, Turret, TANK_SIZE};
+use super::{bullet::NewBullet, gen::{GunState, Tank, Turret, TANK_SIZE}};
 
 
 /// Represents instructions event for controlling a tank's movement and turret actions.
@@ -55,8 +55,10 @@ const TANK_MOVE_SPEED: f32 = 100.;
 /// - **Shoot**: (Not implemented yet).
 pub fn process_tank_instruction<const P_FLAG: u32>(
     mut tank_query: Query<(&mut Transform, &Tank, Entity), With<PlayerID<P_FLAG>>>,
-    mut turret_query: Query<&mut Transform, (Without<PlayerID<P_FLAG>>, With<Turret>)>,
+    mut turret_query: Query<(&mut Transform, &GlobalTransform, &mut Turret), (Without<PlayerID<P_FLAG>>, With<Turret>)>,
     mut instruction_events: EventReader<Instruction<P_FLAG>>,
+
+    mut new_bullet: EventWriter<NewBullet>,
 
     time: Res<Time>,
 
@@ -121,19 +123,38 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                         Instruction::SpinTurretLeft => {
                             let mut turret_transform = turret_query.get_mut(tank.turret)
                                 .expect("Tank has lost ref it's turret");
-                            let turret_transform = turret_transform.as_mut();
+                            let turret_transform = turret_transform.0.as_mut();
 
                             turret_transform.rotate_z(-TURRET_ROTATION_SPEED * time.delta_seconds());
                         },
                         Instruction::SpinTurretRight => {
                             let mut turret_transform = turret_query.get_mut(tank.turret)
                                 .expect("Tank has lost ref it's turret");
-                            let turret_transform = turret_transform.as_mut();
+                            let turret_transform = turret_transform.0.as_mut();
 
                             turret_transform.rotate_z(TURRET_ROTATION_SPEED * time.delta_seconds());
                         },
 
-                        Instruction::Shoot => todo!()
+                        Instruction::Shoot => {
+                            let (
+                                _transform,
+                                global_transform,
+                                mut turret
+                            ) = turret_query.get_mut(tank.turret)
+                                .expect("Tank lost reference to turret");
+                            let turret = turret.as_mut();
+
+                            if let GunState::Ready = turret.0 {
+                                new_bullet.send(NewBullet{
+                                    start_pos: transform.translation,
+                                    dir: global_transform.compute_transform()
+                                        .rotation,
+                                    source: player_entity,
+                                });
+
+                                turret.0 = GunState::reload();
+                            }
+                        }
                     }
                 });
         });
