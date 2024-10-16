@@ -6,7 +6,8 @@ use std::net::IpAddr;
 
 use bevy::{app::{Plugin, Update}, input::{ButtonInput, InputPlugin}, prelude::{Component, EventWriter, KeyCode, Res, Resource}};
 
-use crate::engine::tank::Instruction;
+use crate::engine::tank::instruction::Instruction;
+
 
 
 /// Represents a unique identifier for a player.

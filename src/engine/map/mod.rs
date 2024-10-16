@@ -16,7 +16,7 @@ use gen_state::Step;
 use map_loader::MapLoader;
 use serde::{Deserialize, Serialize};
 
-use crate::{engine::tank::{create_minimal_tank, create_tank}, player::PlayerID};
+use crate::{engine::tank::gen::{create_minimal_tank, create_tank}, player::PlayerID};
 
 pub mod map_loader;
 pub mod gen_state;
