@@ -46,7 +46,7 @@ const WALL_SIZE: f32 = 32.;
 
 /// A component representing a wall in the game.
 #[derive(Debug, Clone, Copy, Component)]
-struct Wall;
+pub struct Wall;
 
 /// Loads the specified map from the asset server and sets it as the current map.
 /// 

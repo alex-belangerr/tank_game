@@ -1,12 +1,14 @@
 //! This module handles the gameplay mechanics for tanks in a Bevy-based game,
 //! including their creation, movement, turret control, and associated instructions.
 
-use std::f32::consts::PI;
+use std::{f32::consts::PI, fmt::Debug, marker::PhantomData};
 
-use bevy::{asset::AssetServer, math::Vec3, prelude::{BuildChildren, Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With, Without}, sprite::SpriteBundle, time::Time};
-use bevy_rapier2d::prelude::Collider;
+use bevy::{app::{Plugin, Update}, asset::AssetServer, color::palettes::css::{BLUE, GREEN, RED}, math::{Vec2, Vec3}, prelude::{BuildChildren, Commands, Component, Entity, Event, EventReader, Gizmos, GlobalTransform, Query, Res, Transform, With, Without}, sprite::SpriteBundle, time::Time};
+use bevy_rapier2d::{na::{Matrix2, Vector2}, plugin::RapierContext, prelude::{Collider, QueryFilter}};
 
 use crate::player::PlayerID;
+
+use super::map::Wall;
 
 /// Represents instructions event for controlling a tank's movement and turret actions.
 ///
@@ -160,6 +162,16 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
         },
         GlobalTransform::default(),
         Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),
+        VisionRay::<NUM_OF_HULL_RAY, Tank>::new(
+            HULL_RAY_MAX_DIST,
+            2. * PI / NUM_OF_HULL_RAY as f32,
+            0.
+        ),
+        VisionRay::<NUM_OF_TURRET_RAY, Turret>::new(
+            TURRET_RAY_MAX_DIST,
+            TURRET_VISION_ANGLE / NUM_OF_TURRET_RAY as f32,
+            -TURRET_VISION_ANGLE / 2.
+        )
     )).id();
 
     commands.entity(tank_id).add_child(turret_id);
@@ -210,9 +222,252 @@ pub fn create_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands, asset_s
             ..Default::default()
         },
         Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),
+        VisionRay::<NUM_OF_HULL_RAY, Tank>::new(
+            HULL_RAY_MAX_DIST,
+            2. * PI / NUM_OF_HULL_RAY as f32,
+            0.
+        ),
+        VisionRay::<NUM_OF_TURRET_RAY, Turret>::new(
+            TURRET_RAY_MAX_DIST,
+            TURRET_VISION_ANGLE / NUM_OF_TURRET_RAY as f32,
+            -TURRET_VISION_ANGLE / 2.
+        )
     )).id();
 
     commands.entity(tank_id).add_child(turret_id);
 
     tank_id
+}
+
+const NUM_OF_HULL_RAY: usize = 10;
+const HULL_RAY_MAX_DIST: f32 = TANK_SIZE * 4.;
+
+const TURRET_VISION_ANGLE: f32 = PI / 12.;
+const NUM_OF_TURRET_RAY: usize = 5;
+const TURRET_RAY_MAX_DIST: f32 = TANK_SIZE * 10.;
+
+#[derive(Debug, Clone, Copy)]
+pub enum VisionHit {
+    Wall(f32),
+    Enemy(f32)
+}
+
+#[derive(Component, Debug, Clone, Copy)]
+pub struct VisionRay<const RAY_COUNT: usize, S> {
+    pub rays: [Option<VisionHit>; RAY_COUNT],
+    pub(self) max_dist: f32,
+    pub(self) rotation_matrix: Matrix2<f32>,
+    pub(self) start_dir: Matrix2<f32>,
+
+    _phantom: PhantomData<S>
+}
+impl<const RAY_COUNT: usize, S> VisionRay<RAY_COUNT, S> {
+    pub fn new(max_dist: f32, angle_gap: f32, start_angle: f32) -> Self{
+        let rotation_matrix = Matrix2::new(
+            f32::cos(angle_gap), -f32::sin(angle_gap),
+            f32::sin(angle_gap), f32::cos(angle_gap)
+        );
+
+        let start_dir  = Matrix2::new(
+            f32::cos(start_angle), -f32::sin(start_angle),
+            f32::sin(start_angle), f32::cos(start_angle)
+        );
+
+        VisionRay {
+            rays: [None; RAY_COUNT],
+            max_dist,
+            rotation_matrix,
+            start_dir,
+
+            _phantom: PhantomData,
+        }
+    }
+}
+
+pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
+    mut rays: Query<(&mut VisionRay<RAY_COUNT, Tank>, &GlobalTransform, Entity)>,
+
+    tanks: Query<(), With<Tank>>,
+    walls: Query<(), With<Wall>>,
+
+    rapier_context: Res<RapierContext>,
+
+    mut gizmos: Gizmos
+) {
+    for (mut vision, transform, player_entity) in &mut rays {
+        
+        let vision = vision.as_mut();
+        let VisionRay { rays, max_dist, rotation_matrix, start_dir, _phantom} = vision;
+
+        let ray_pos = {
+            let pos = transform.translation();
+
+            Vec2::new(pos.x, pos.y)
+        };
+
+        let max_toi = *max_dist;
+        let solid = true;
+        let filter = {
+            let mut filter = QueryFilter::default();
+
+            filter.exclude_collider = Some(player_entity);
+
+            filter
+        };
+
+        let mut ray_dir = {
+            let forward = transform.up().as_vec3();
+            let forward = *start_dir * Vector2::new(forward.x, forward.y);
+
+            forward
+        };
+
+        rays.iter_mut()
+            .for_each(|hit_marker| {
+                if DEBUG {
+                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                }
+                
+                let ray_cast = rapier_context.cast_ray(
+                    ray_pos,
+                    Vec2::new(ray_dir[0], ray_dir[1]),
+                    max_toi,
+                    solid,
+                    filter
+                );
+
+                *hit_marker = match ray_cast {
+                    Some((entity, toi)) => {
+                        match (tanks.contains(entity), walls.contains(entity)) {
+                            (true, false) => {
+                                if DEBUG {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., RED);
+                                }
+                                
+                                Some(VisionHit::Enemy(toi))
+                            },
+                            (false, true) => {
+                                if DEBUG {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., BLUE);
+                                }
+                                
+                                Some(VisionHit::Wall(toi))
+                            },
+                            _ => panic!("This should never happen")
+                        }
+                    },
+                    None => None
+                };
+
+                ray_dir = *rotation_matrix * ray_dir;
+            });
+        if DEBUG {
+            println!("{player_entity:?} - {rays:#?}")
+        }
+    }
+}
+
+
+pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
+    mut rays: Query<(&mut VisionRay<RAY_COUNT, Turret>, &Tank, Entity)>,
+
+    turrets: Query<&GlobalTransform, With<Turret>>,
+    tanks: Query<(), With<Tank>>,
+    walls: Query<(), With<Wall>>,
+
+    rapier_context: Res<RapierContext>,
+
+    mut gizmos: Gizmos
+) {
+    for (mut vision, tank, player_entity) in &mut rays {
+
+        let transform = turrets.get(tank.turret).expect("Tank lost ref to it's turret");
+        
+        let vision = vision.as_mut();
+        let VisionRay { rays, max_dist, rotation_matrix, start_dir, _phantom} = vision;
+
+        let ray_pos = {
+            let pos = transform.translation();
+
+            Vec2::new(pos.x, pos.y)
+        };
+
+        let max_toi = *max_dist;
+        let solid = true;
+        let filter = {
+            let mut filter = QueryFilter::default();
+
+            filter.exclude_collider = Some(player_entity);
+
+            filter
+        };
+
+        let mut ray_dir = {
+            let forward = transform.up().as_vec3();
+            let forward = *start_dir * Vector2::new(forward.x, forward.y);
+
+            forward
+        };
+
+        rays.iter_mut()
+            .for_each(|hit_marker| {
+                if DEBUG {
+                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                }
+                
+                let ray_cast = rapier_context.cast_ray(
+                    ray_pos,
+                    Vec2::new(ray_dir[0], ray_dir[1]),
+                    max_toi,
+                    solid,
+                    filter
+                );
+
+                *hit_marker = match ray_cast {
+                    Some((entity, toi)) => {
+                        match (tanks.contains(entity), walls.contains(entity)) {
+                            (true, false) => {
+                                if DEBUG {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., RED);
+                                }
+                                
+                                Some(VisionHit::Enemy(toi))
+                            },
+                            (false, true) => {
+                                if DEBUG {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., BLUE);
+                                }
+                                
+                                Some(VisionHit::Wall(toi))
+                            },
+                            _ => panic!("This should never happen")
+                        }
+                    },
+                    None => None
+                };
+
+                ray_dir = *rotation_matrix * ray_dir;
+            });
+        if DEBUG {
+            println!("{player_entity:?} - {rays:#?}")
+        }
+    }
+}
+
+pub struct TankPlugin;
+
+impl Plugin for TankPlugin{
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app
+            .add_event::<Instruction<0>>()
+            .add_event::<Instruction<1>>()
+            .add_systems(Update, process_tank_instruction::<0>)
+            .add_systems(Update, process_tank_instruction::<1>)
+            .add_systems(Update, update_tank_vision_ray::<NUM_OF_HULL_RAY, false>)
+            .add_systems(Update, update_turret_vision_ray::<NUM_OF_TURRET_RAY, false>);
+        }
 }

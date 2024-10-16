@@ -1,9 +1,9 @@
 use bevy::{
-    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Update}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
+    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
 use bevy_rapier2d::{plugin::{NoUserData, RapierPhysicsPlugin}, render::RapierDebugRenderPlugin};
 use map::MapPlugin;
-use tank::{process_tank_instruction, Instruction};
+use tank::TankPlugin;
 
 pub mod map;
 pub mod tank;
@@ -15,7 +15,7 @@ impl Plugin for EnginePlugin {
         match self.0 {
             true => {
                 app.add_plugins(DefaultPlugins)
-                    .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(16.0))
+                    .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(8.0))
                     //DEBUG
                     .add_plugins(RapierDebugRenderPlugin::default());
             },
@@ -33,10 +33,6 @@ impl Plugin for EnginePlugin {
         };
         app
             .add_plugins(MapPlugin(self.0))
-            .add_event::<Instruction<0>>()
-            .add_event::<Instruction<1>>()
-            .add_systems(Update, process_tank_instruction::<0>)
-            .add_systems(Update, process_tank_instruction::<1>);
-        
+            .add_plugins(TankPlugin);        
     }
 }
