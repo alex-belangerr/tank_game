@@ -14,7 +14,53 @@ This repository contains **tank_game**, a customizable framework designed for an
 
 This game engine serves as the foundation for participants to develop, test, and refine their AI models in a competitive yet accessible environment.
 
-# Args
+# Command-Line Arguments for `tank_game`
+
+The `tank_game` engine allows customization of game settings through various command-line arguments. Below is a list of all available optional arguments, along with their default values if not specified.
+
+## Optional Arguments
+
+### `-r` or `-render`
+- **Description**: Enables or disables rendering in the game engine.
+- **Values**:
+  - `t` or `true` – enables rendering.
+  - `f` or `false` – disables rendering (headless mode).
+- **Default**: `true` (Rendering is enabled by default).
+
+---
+
+### `-p1` or `-player_1`
+- **Description**: Specifies the control scheme for Player 1.
+- **Values**:
+  - `wasd` – controls Player 1 using the `W`, `A`, `S`, `D` keys.
+  - `arrow` – controls Player 1 using the arrow keys.
+  - `<IP>:<Port>` – controls Player 1 using a REST API running on the specified IP address and port.
+- **Default**: `wasd` (Player 1 uses `W`, `A`, `S`, `D` keys by default).
+
+---
+
+### `-p2` or `-player_2`
+- **Description**: Specifies the control scheme for Player 2.
+- **Values**:
+  - `wasd` – controls Player 2 using the `W`, `A`, `S`, `D` keys.
+  - `arrow` – controls Player 2 using the arrow keys.
+  - `<IP>:<Port>` – controls Player 2 using a REST API running on the specified IP address and port.
+- **Default**: `arrow` (Player 2 uses arrow keys by default).
+
+---
+
+## Usage Example
+
+```bash
+# Run the game with default settings (rendering enabled, Player 1 using WASD, Player 2 using arrow keys)
+./tank_game
+
+# Run the game in headless mode (no rendering)
+./tank_game -r false
+
+# Set Player 1 to use WASD keys and Player 2 to use a REST API at 127.0.0.1:8080
+./tank_game -p1 wasd -p2 127.0.0.1:8080
+```
 
 # Todo
 
