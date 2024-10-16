@@ -284,6 +284,36 @@ impl<const RAY_COUNT: usize, S> VisionRay<RAY_COUNT, S> {
     }
 }
 
+/// Updates the vision rays for tanks, casting rays to detect walls and enemies.
+/// 
+/// # Parameters
+/// 
+/// * `rays`: A query containing mutable references to `VisionRay` components, 
+///    global transformations, and associated entity.
+/// * `tanks`: A query that filters entities with the `Tank` component.
+/// * `walls`: A query that filters entities with the `Wall` component.
+/// * `rapier_context`: A reference to the physics context (`RapierContext`) 
+///    used for ray casting.
+/// * `gizmos`: A mutable reference to `Gizmos` for visual debugging.
+/// 
+/// # Raycasting Logic
+/// 
+/// For each ray:
+/// - Casts a ray in the direction specified by the tank's orientation.
+/// - Checks for collisions with either walls or tanks.
+/// - Marks the ray with the type of object hit (`Wall` or `Enemy`).
+/// - Optionally displays debugging information such as the ray's path and 
+///   hit points.
+///
+/// # Type Parameters
+/// 
+/// * `RAY_COUNT`: The number of rays to cast for vision.
+/// * `DEBUG`: If true, displays debugging information for the rays.
+/// 
+/// # Panics
+/// 
+/// This function will panic if an unexpected collision type is detected, which 
+/// should not happen given the query filters.
 pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
     mut rays: Query<(&mut VisionRay<RAY_COUNT, Tank>, &GlobalTransform, Entity)>,
 
@@ -369,7 +399,38 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
     }
 }
 
-
+/// Updates the vision rays for turrets, casting rays to detect walls and enemies.
+///
+/// # Parameters
+///
+/// * `rays`: A query containing mutable references to `VisionRay` components,
+///    the associated tank, and entity.
+/// * `turrets`: A query that filters entities with the `Turret` component to get
+///    the global transform of the turret.
+/// * `tanks`: A query that filters entities with the `Tank` component.
+/// * `walls`: A query that filters entities with the `Wall` component.
+/// * `rapier_context`: A reference to the physics context (`RapierContext`)
+///    used for ray casting.
+/// * `gizmos`: A mutable reference to `Gizmos` for visual debugging.
+///
+/// # Raycasting Logic
+///
+/// For each ray:
+/// - Casts a ray in the direction specified by the turret's orientation.
+/// - Checks for collisions with either walls or tanks.
+/// - Marks the ray with the type of object hit (`Wall` or `Enemy`).
+/// - Optionally displays debugging information such as the ray's path and
+///   hit points.
+///
+/// # Type Parameters
+///
+/// * `RAY_COUNT`: The number of rays to cast for vision.
+/// * `DEBUG`: If true, displays debugging information for the rays.
+///
+/// # Panics
+///
+/// This function will panic if the tank loses its reference to the turret or 
+/// an unexpected collision type is detected.
 pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
     mut rays: Query<(&mut VisionRay<RAY_COUNT, Turret>, &Tank, Entity)>,
 
