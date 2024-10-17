@@ -76,7 +76,7 @@ The `tank_game` engine allows customization of game settings through various com
   - Implement player-controlled movement inputs for tanks.
 - [X] **Turret Rotation**  
   - Add controls to rotate turrets based on user input.
-- [-] **Shooting**  
+- [X] **Shooting**  
   - Allow user-triggered shooting action via inputs.
 
 ## Sensor Inputs
@@ -86,11 +86,11 @@ The `tank_game` engine allows customization of game settings through various com
   - Set up ray casts originating from the turret to detect enemies.
 
 ## Shooting Mechanism
-- [ ] **Bullet Generation**  
+- [X] **Bullet Generation**  
   - Create bullet instances when the player shoots.
-- [ ] **Bullet Destruction**  
+- [X] **Bullet Destruction**  
   - Destroy bullet on impact with tank or wall.
-- [ ] **Tank Destruction**  
+- [X] **Tank Destruction**  
   - Destroy enemy tanks upon being hit by a bullet.
 - [ ] **End Game Logic**  
   - Update game state when a tank is destroyed and determine the winner.
@@ -107,7 +107,7 @@ The `tank_game` engine allows customization of game settings through various com
 
 ## Sounds (SECONDARY)
 - [ ] **Shooting Sound Effect**  
-  - Play sound effect when shooting.
+  - Play sound effects when shooting.
 - [ ] **Explosion Sound Effect**  
   - Trigger explosion sound when a tank or bullet is destroyed.
 
