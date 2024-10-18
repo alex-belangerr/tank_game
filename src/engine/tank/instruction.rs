@@ -270,7 +270,7 @@ fn new_move_pos<const DEBUG: bool>(
     start_pos + TANK_MOVE_SPEED * dir * delta_time
 }
 
-fn get_rotation_z(dir: Vec2) -> f32 {
+pub fn get_rotation_z(dir: Vec2) -> f32 {
     let mag = (dir.x.powi(2) + dir.y.powi(2)).sqrt();
     let normalized_dir = Vec2 { x: dir.x / mag, y: dir.y / mag };
 

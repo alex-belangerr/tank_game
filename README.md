@@ -102,7 +102,7 @@ The `tank_game` engine allows customization of game settings through various com
 ## Player Inputs
 - [X] **Keyboard Inputs**  
   - Set up controls using keyboard input to move and interact.
-- [ ] **REST API Inputs**  
+- [X] **REST API Inputs**  
   - Integrate support for controlling the game using REST API inputs.
 
 ## Sounds (SECONDARY)

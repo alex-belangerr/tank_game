@@ -2,20 +2,21 @@ use std::{f32::consts::PI, marker::PhantomData};
 
 use bevy::{math::Vec2, prelude::{Component, Entity, GlobalTransform, Query, Res, With}};
 use bevy_rapier2d::{na::{Matrix2, Vector2}, plugin::RapierContext, prelude::QueryFilter};
+use serde::Serialize;
 
 use crate::engine::map::Wall;
 
 use super::gen::{Tank, Turret, TANK_SIZE};
 
 
-pub(super) const NUM_OF_HULL_RAY: usize = 8;
+pub const NUM_OF_HULL_RAY: usize = 8;
 pub(super) const HULL_RAY_MAX_DIST: f32 = TANK_SIZE * 4.;
 
 pub(super) const TURRET_VISION_ANGLE: f32 = PI / 12.;
-pub(super) const NUM_OF_TURRET_RAY: usize = 5;
+pub const NUM_OF_TURRET_RAY: usize = 5;
 pub(super) const TURRET_RAY_MAX_DIST: f32 = TANK_SIZE * 10.;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub enum VisionHit {
     Wall(f32),
     Enemy(f32)

@@ -4,11 +4,12 @@
 
 use std::net::IpAddr;
 
-use bevy::{app::{Plugin, Update}, input::{ButtonInput, InputPlugin}, prelude::{Component, EventWriter, KeyCode, Res, Resource}};
+use bevy::{app::{Plugin, Update}, input::InputPlugin, prelude::{Component, KeyCode}};
+use key_board::{keyboard_input, PlayerKeyBind};
+use server::{server_input, update_player_data, PlayerServer};
 
-use crate::engine::tank::instruction::Instruction;
-
-
+pub mod server;
+pub mod key_board;
 
 /// Represents a unique identifier for a player.
 #[derive(Component)]
@@ -34,6 +35,7 @@ impl<const P_FLAG_1: u32, const P_FLAG_2: u32> Plugin for PlayerControllerPlugin
             (_, PlayerController::Server{ .. }) |
             (PlayerController::Server { .. }, _) => {
                 // sever initialization code
+                // app.init_resource::<GameServer>();
             },
             _ => {}
         }
@@ -91,97 +93,18 @@ impl<const P_FLAG: u32> PlayerController<P_FLAG> {
     }
 }
 
-/// Handles keyboard input for player controls and sends instructions based on key presses.
-/// 
-/// # Parameters
-/// - `player_keybinding`: Resource containing key bindings for the player.
-/// - `keys`: Resource containing the current state of key inputs.
-/// - `event_writer`: Event writer for sending instructions based on input.
-#[derive(Resource)]
-pub struct PlayerKeyBind<const P_FLAG: u32>{
-    pub move_forward: KeyCode,
-    pub move_backward: KeyCode,
-    pub rotate_left: KeyCode,
-    pub rotate_right: KeyCode,
-
-    pub spin_turret_left: KeyCode,
-    pub spin_turret_right: KeyCode,
-    pub shoot: KeyCode
-}
-
-impl<const P_FLAG: u32> From<&PlayerController<P_FLAG>> for PlayerKeyBind<P_FLAG> {
-    fn from(value: &PlayerController<P_FLAG>) -> Self {
-        let PlayerController::Control{
-            move_forward,
-            move_backward,
-            rotate_left,
-            rotate_right,
-        
-            spin_turret_left,
-            spin_turret_right,
-            shoot
-        } = *value else {
-            panic!("Invalid call");
-        };
-
-        PlayerKeyBind{
-            move_forward,
-            move_backward,
-            rotate_left,
-            rotate_right,
-            spin_turret_left,
-            spin_turret_right,
-            shoot,
-        }
-    }
-}
-
-pub fn keyboard_input<const P_FLAG: u32>(
-    player_keybinding: Res<PlayerKeyBind<P_FLAG>>,
-    keys: Res<ButtonInput<KeyCode>>,
-    mut event_writer: EventWriter<Instruction<P_FLAG>>
-){
-    if keys.pressed(player_keybinding.move_forward) {
-        event_writer.send(Instruction::MoveForward);
-    }
-    else if keys.pressed(player_keybinding.move_backward) {
-        event_writer.send(Instruction::MoveBackward);
-    }
-
-    if keys.pressed(player_keybinding.rotate_left) {
-        event_writer.send(Instruction::RotateLeft);
-    }
-    else if keys.pressed(player_keybinding.rotate_right) {
-        event_writer.send(Instruction::RotateRight);
-    }
-
-    if keys.pressed(player_keybinding.spin_turret_left) {
-        event_writer.send(Instruction::SpinTurretLeft);
-    }
-    else if keys.pressed(player_keybinding.spin_turret_right) {
-        event_writer.send(Instruction::SpinTurretRight);
-    }
-
-    if keys.pressed(player_keybinding.shoot) {
-        event_writer.send(Instruction::Shoot);
-    }
-
-}
-
 impl<const P_FLAG: u32> Plugin for PlayerController<P_FLAG> {
     fn build(&self, app: &mut bevy::prelude::App) {
         println!("ADDING PLAYER PLUGIN {P_FLAG}");
         match &self {
-            PlayerController::Server { .. } => { // todo!() replace placeholder with a higher order function that interacts with server
-                println!("Server based control");
-                // create thread to handle server inputs
-                // initialize other server with our data
-                //  - tank info
-                //  - our server info (ip & port)
+            PlayerController::Server { ip, port  } => { // todo!() replace placeholder with a higher order function that interacts with server
+                app.insert_resource::<PlayerServer<P_FLAG>>(PlayerServer::new(*ip, *port, "This is a game id"))
+                    .add_systems(Update, server_input::<P_FLAG>)
+                    .add_systems(Update, update_player_data::<P_FLAG>);
             },
             PlayerController::Control { .. } => { // todo!() replace placeholder with a higher order function that creates keyboard_input using key mapping
-                app.insert_resource::<PlayerKeyBind<P_FLAG>>(self.into());
-                app.add_systems(Update, keyboard_input::<P_FLAG>);
+                app.insert_resource::<PlayerKeyBind<P_FLAG>>(self.into())
+                    .add_systems(Update, keyboard_input::<P_FLAG>);
                 println!("key board controls");
             },
         }

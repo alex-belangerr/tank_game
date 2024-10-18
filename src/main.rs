@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*};
 use player::PlayerControllerPlugin;
 
 pub mod args;
@@ -13,6 +13,6 @@ fn main() {
     app.add_plugins(engine::EnginePlugin(game_builder.render));
 
     app.add_plugins(PlayerControllerPlugin(game_builder.player_1, game_builder.player_2));
-    
+
     app.run();
 }
