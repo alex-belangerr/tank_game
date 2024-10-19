@@ -21,8 +21,8 @@ impl Plugin for TankPlugin{
             .add_event::<NewBullet>()
             .add_systems(Update, process_tank_instruction::<0>)
             .add_systems(Update, process_tank_instruction::<1>)
-            .add_systems(Update, update_tank_vision_ray::<NUM_OF_HULL_RAY, false>)
-            .add_systems(Update, update_turret_vision_ray::<NUM_OF_TURRET_RAY, false>)
+            .add_systems(Update, update_tank_vision_ray::<NUM_OF_HULL_RAY>)
+            .add_systems(Update, update_turret_vision_ray::<NUM_OF_TURRET_RAY>)
             .add_systems(Update, update_bullet_pos)
             .add_systems(Update, bullet_collision)
             .add_systems(Update, reload_gun);

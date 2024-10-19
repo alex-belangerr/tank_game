@@ -4,7 +4,15 @@ use bevy::{math::Vec2, prelude::{Component, Entity, GlobalTransform, Query, Res,
 use bevy_rapier2d::{na::{Matrix2, Vector2}, plugin::RapierContext, prelude::QueryFilter};
 use serde::Serialize;
 
+#[cfg(feature = "debug")]
+use bevy::color::palettes::css::{RED, BLUE, GREEN};
+
+#[cfg(feature = "debug")]
+use bevy::prelude::Gizmos;
+
 use crate::engine::map::Wall;
+
+
 
 use super::gen::{Tank, Turret, TANK_SIZE};
 
@@ -84,7 +92,7 @@ impl<const RAY_COUNT: usize, S> VisionRay<RAY_COUNT, S> {
 /// 
 /// This function will panic if an unexpected collision type is detected, which 
 /// should not happen given the query filters.
-pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
+pub fn update_tank_vision_ray<const RAY_COUNT: usize>(
     mut rays: Query<(&mut VisionRay<RAY_COUNT, Tank>, &GlobalTransform, Entity)>,
 
     tanks: Query<(), With<Tank>>,
@@ -92,7 +100,8 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
     rapier_context: Res<RapierContext>,
 
-    // mut gizmos: Gizmos
+    #[cfg(feature = "debug")]
+    mut gizmos: Gizmos
 ) {
     for (mut vision, transform, player_entity) in &mut rays {
         
@@ -124,8 +133,9 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
         rays.iter_mut()
             .for_each(|hit_marker| {
-                if DEBUG {
-                    // gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                #[cfg(feature = "debug")]
+                {
+                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
                 }
                 
                 let ray_cast = rapier_context.cast_ray(
@@ -140,17 +150,19 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
                     Some((entity, toi)) => {
                         match (tanks.contains(entity), walls.contains(entity)) {
                             (true, false) => {
-                                if DEBUG {
-                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    // gizmos.circle_2d(hit_point, 5., RED);
+                                #[cfg(feature = "debug")]
+                                {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., RED);
                                 }
                                 
                                 Some(VisionHit::Enemy(toi))
                             },
                             (false, true) => {
-                                if DEBUG {
-                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    // gizmos.circle_2d(hit_point, 5., BLUE);
+                                #[cfg(feature = "debug")]
+                                {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., BLUE);
                                 }
                                 
                                 Some(VisionHit::Wall(toi))
@@ -163,7 +175,8 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
                 ray_dir = *rotation_matrix * ray_dir;
             });
-        if DEBUG {
+        #[cfg(feature = "debug")]
+        {
             println!("{player_entity:?} - {rays:#?}")
         }
     }
@@ -201,7 +214,7 @@ pub fn update_tank_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 ///
 /// This function will panic if the tank loses its reference to the turret or 
 /// an unexpected collision type is detected.
-pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
+pub fn update_turret_vision_ray<const RAY_COUNT: usize>(
     mut rays: Query<(&mut VisionRay<RAY_COUNT, Turret>, &Tank, Entity)>,
 
     turrets: Query<&GlobalTransform, With<Turret>>,
@@ -209,8 +222,9 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
     walls: Query<(), With<Wall>>,
 
     rapier_context: Res<RapierContext>,
-
-    // mut gizmos: Gizmos
+    
+    #[cfg(feature = "debug")]
+    mut gizmos: Gizmos
 ) {
     for (mut vision, tank, player_entity) in &mut rays {
 
@@ -244,8 +258,10 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
         rays.iter_mut()
             .for_each(|hit_marker| {
-                if DEBUG {
-                    // gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
+                
+                #[cfg(feature = "debug")]
+                {
+                    gizmos.line_2d(ray_pos, ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * max_toi, GREEN);
                 }
                 
                 let ray_cast = rapier_context.cast_ray(
@@ -260,17 +276,19 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
                     Some((entity, toi)) => {
                         match (tanks.contains(entity), walls.contains(entity)) {
                             (true, false) => {
-                                if DEBUG {
-                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    // gizmos.circle_2d(hit_point, 5., RED);
+                                #[cfg(feature = "debug")]
+                                {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., RED);
                                 }
                                 
                                 Some(VisionHit::Enemy(toi))
                             },
                             (false, true) => {
-                                if DEBUG {
-                                    // let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
-                                    // gizmos.circle_2d(hit_point, 5., BLUE);
+                                #[cfg(feature = "debug")]
+                                {
+                                    let hit_point = ray_pos + Vec2::new(ray_dir[0], ray_dir[1]) * toi;
+                                    gizmos.circle_2d(hit_point, 5., BLUE);
                                 }
                                 
                                 Some(VisionHit::Wall(toi))
@@ -283,7 +301,8 @@ pub fn update_turret_vision_ray<const RAY_COUNT: usize, const DEBUG: bool>(
 
                 ray_dir = *rotation_matrix * ray_dir;
             });
-        if DEBUG {
+        #[cfg(feature = "debug")]
+        {
             println!("{player_entity:?} - {rays:#?}")
         }
     }
