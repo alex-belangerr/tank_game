@@ -126,8 +126,15 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                 let mut player_data: PlayerDataSerialized = PlayerDataSerialized::new(game_id);
                 
                 loop {
-                    if let Ok(new_player_data) = recv_player_data.try_recv() {
-                        player_data.update(&new_player_data);
+                    {
+                        // let mut i1 = 0;
+                        while let Ok(new_player_data) = recv_player_data.try_recv() {
+                            // if 100 < i1 {
+                            //     break;
+                            // }
+                            player_data.update(&new_player_data);
+                            // i1 +=1;
+                        }
                     }
                     let response = client.post(&format!("http://{ip}:{port}/brain"))
                         .json(&player_data)
