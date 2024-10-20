@@ -4,9 +4,11 @@
 
 use std::net::IpAddr;
 
-use bevy::{app::{Plugin, Update}, input::InputPlugin, prelude::{Component, KeyCode}};
+use bevy::{app::{Plugin, Update}, input::InputPlugin, prelude::{in_state, Component, IntoSystemConfigs, KeyCode}};
 use key_board::{keyboard_input, PlayerKeyBind};
-use server::{server_input, update_player_data, PlayerServer};
+use server::{end_game_msg, server_input, update_player_data, PlayerServer};
+
+use crate::engine::map::gen_state::Step;
 
 pub mod server;
 pub mod key_board;
@@ -100,7 +102,11 @@ impl<const P_FLAG: u32> Plugin for PlayerController<P_FLAG> {
             PlayerController::Server { ip, port  } => { // todo!() replace placeholder with a higher order function that interacts with server
                 app.insert_resource::<PlayerServer<P_FLAG>>(PlayerServer::new(*ip, *port, "This is a game id"))
                     .add_systems(Update, server_input::<P_FLAG>)
-                    .add_systems(Update, update_player_data::<P_FLAG>);
+                    .add_systems(Update, update_player_data::<P_FLAG>)
+                    .add_systems(
+                        Update,
+                        end_game_msg::<P_FLAG>.run_if(in_state(Step::Finished))
+                    );
             },
             PlayerController::Control { .. } => { // todo!() replace placeholder with a higher order function that creates keyboard_input using key mapping
                 app.insert_resource::<PlayerKeyBind<P_FLAG>>(self.into())

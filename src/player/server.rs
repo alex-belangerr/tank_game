@@ -1,5 +1,5 @@
-use std::{net::IpAddr, sync::{mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::Duration};
-use bevy::{math::Vec2, prelude::{EventWriter, GlobalTransform, Query, Res, ResMut, Resource, With}, utils::hashbrown::HashMap};
+use std::{mem, net::IpAddr, sync::{mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::Duration};
+use bevy::{math::Vec2, prelude::{EventWriter, GlobalTransform, Query, Res, ResMut, Resource, With, Without}, utils::hashbrown::HashMap};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
@@ -78,8 +78,9 @@ struct PlayerInstruction{
 
 #[derive(Resource)]
 pub struct PlayerServer<const P_FLAG: u32>{
-    _request_loop: Arc<Mutex<JoinHandle<()>>>,
-    _kill_flag: Arc<RwLock<bool>>,
+    request_loop: Arc<Mutex<Option<JoinHandle<()>>>>,
+    kill_flag: Arc<RwLock<bool>>,
+    win_cond: Arc<RwLock<bool>>,
 
     pub recv: Arc<Mutex<Receiver<Instruction<P_FLAG>>>>,
     send: Sender<PlayerData<NUM_OF_TURRET_RAY, NUM_OF_HULL_RAY>>
@@ -115,8 +116,10 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
             recv_player_data
         ) = mpsc::channel::<PlayerData<NUM_OF_TURRET_RAY, NUM_OF_HULL_RAY>>();
         let kill_flag = Arc::new(RwLock::new(false));
+        let win_cond = Arc::new(RwLock::new(false));
         let request_loop = {
             let kill_flag = kill_flag.clone();
+            let win_cond = win_cond.clone();
 
             thread::spawn(move || {
                 let game_id= game_id.as_str();
@@ -189,8 +192,33 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                         let Ok(kill_flag) = kill_flag.read() else {
                             continue;
                         };
-            
+
                         if *kill_flag {
+                            let Ok(win_cond) = win_cond.read() else {
+                                continue;
+                            };
+    
+                            let json = {
+                                let mut tmp = HashMap::new();
+                                
+                                tmp.insert(
+                                    "game_id", 
+                                    game_id
+                                );
+    
+                                tmp
+                            };
+    
+                            let _response = match *win_cond {
+                                true => client.post(&format!("http://{ip}:{port}/win"))
+                                    .json(&json)
+                                    .timeout(Duration::from_secs(5))
+                                    .send(),
+                                false =>  client.post(&format!("http://{ip}:{port}/loss"))
+                                    .json(&json)
+                                    .timeout(Duration::from_secs(5))
+                                    .send(),
+                            };
                             return ;
                         }
             
@@ -200,10 +228,64 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
         };
 
         PlayerServer{
-            _request_loop: Arc::new(Mutex::new(request_loop)),
-            _kill_flag: kill_flag,
+            request_loop: Arc::new(Mutex::new(Some(request_loop))),
+            kill_flag,
+            win_cond,
             recv: Arc::new(Mutex::new(recv_inst)),
             send: send_player_data
+        }
+    }
+
+    pub fn win(&mut self) -> bool {
+        {
+            let Ok(mut win_cond) =  self.win_cond.write() else {
+                return false;
+            };
+            let Ok(mut kill_flag) = self.kill_flag.write() else {
+                return false;
+            };
+
+            *kill_flag = true;
+            *win_cond = true;
+        }
+
+        let Ok(mut server) = self.request_loop.lock() else {
+            return false;
+        };
+        let mut tmp_server: Option<JoinHandle<()>> = None;
+
+        match tmp_server{
+            Some(join_handle) => {
+                let _result = join_handle.join();
+                true
+            },
+            None => {
+                mem::swap(&mut *server, &mut tmp_server);
+                true
+            },
+        }
+    }
+    pub fn lose(&mut self) -> bool {
+        let Ok(mut kill_flag) = self.kill_flag.write() else {
+            return false;
+        };
+
+        *kill_flag = true;
+        
+        let Ok(mut server) = self.request_loop.lock() else {
+            return false;
+        };
+        let mut tmp_server: Option<JoinHandle<()>> = None;
+
+        match tmp_server{
+            Some(join_handle) => {
+                let _result = join_handle.join();
+                true
+            },
+            None => {
+                mem::swap(&mut *server, &mut tmp_server);
+                true
+            },
         }
     }
 }
@@ -243,6 +325,14 @@ pub fn server_input<const P_FLAG: u32>(
 ) {
     let player_server = player_server.as_mut();
 
+    let Ok(kill_flag) = player_server.kill_flag.read() else {
+        return;
+    };
+
+    if *kill_flag {
+        return;
+    }
+
     match player_server.recv.lock() {
         Ok(recv) => {
             while let Ok(val) = recv.try_recv(){
@@ -250,5 +340,31 @@ pub fn server_input<const P_FLAG: u32>(
             };
         },
         Err(_) => todo!(),
+    }
+}
+
+pub fn end_game_msg<const P_FLAG: u32>(
+    mut player_server: ResMut<PlayerServer<P_FLAG>>,
+    player_tanks: Query<(), (With<Tank>, With<PlayerID<P_FLAG>>)>,
+    other_tanks: Query<(), (With<Tank>, Without<PlayerID<P_FLAG>>)>
+) {
+    let other_tanks_count = other_tanks.iter().count();
+    let player_tanks_count = player_tanks.iter().count();
+
+    #[cfg(feature="debug")]
+    println!("other tanks:{other_tanks_count}\t{P_FLAG} tanks: {player_tanks_count}");
+
+    let player_server = player_server.as_mut();
+
+    match (player_tanks_count, other_tanks_count) {
+        (0, _) => {
+            player_server.lose();
+        },
+        (_, 0) => {
+            player_server.win();
+        },
+         _=> {
+            //do nothing
+         }
     }
 }
