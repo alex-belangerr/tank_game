@@ -1,7 +1,7 @@
 use bevy::{
     a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
-use bevy_rapier2d::{plugin::{NoUserData, RapierPhysicsPlugin}};
+use bevy_rapier2d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 #[cfg(feature = "debug")]
 use bevy_rapier2d::render::RapierDebugRenderPlugin;

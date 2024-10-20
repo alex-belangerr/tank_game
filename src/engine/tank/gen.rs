@@ -12,7 +12,7 @@ use super::vision::{VisionRay, HULL_RAY_MAX_DIST, NUM_OF_HULL_RAY, NUM_OF_TURRET
 /// # Fields
 /// - `team_id`: The ID of the team that the tank belongs to.
 /// - `turret`: The entity associated with the tank's turret.
-#[derive(Component)]
+#[derive(Component, Clone, Copy)]
 pub struct Tank{
     pub team_id: u8,
     pub turret: Entity,

@@ -214,7 +214,7 @@ pub fn update_player_data<const P_FLAG: u32>(
     tank_query: Query<(&GlobalTransform, &Tank, &VisionRay<NUM_OF_HULL_RAY, Tank>, &VisionRay<NUM_OF_TURRET_RAY, Turret>), With<PlayerID<P_FLAG>>>,
     turret_query: Query<&GlobalTransform, With<Turret>>,
 ) {
-    let Some((transform, tank, tank_vision, turret_vision)) = tank_query.iter().next() else {
+    let Ok((transform, tank, tank_vision, turret_vision)) = tank_query.get_single() else {
         return;
     };
     let turret_transform = turret_query.get(tank.turret).expect("Tank lost ref to turret entity");
