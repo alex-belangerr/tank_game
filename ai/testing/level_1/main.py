@@ -1,3 +1,4 @@
+import argparse
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -81,4 +82,12 @@ def loss():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Argument parser for handling the port input
+    parser = argparse.ArgumentParser(description="Flask Tank Game AI")
+    parser.add_argument('--port', type=int, default=5000, help='Port to run the server on')
+    
+    # Parse the arguments
+    args = parser.parse_args()
+    
+    # Run the app on the specified port
+    app.run(debug=True, port=args.port)

@@ -182,7 +182,7 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                             }
                         },
                         Err(_err) => {
-                            todo!("Error handling")
+                            // todo!("Error handling")
                         },
                     }
                     
@@ -325,21 +325,23 @@ pub fn server_input<const P_FLAG: u32>(
 ) {
     let player_server = player_server.as_mut();
 
-    let Ok(kill_flag) = player_server.kill_flag.read() else {
-        return;
-    };
+    // let Ok(kill_flag) = player_server.kill_flag.read() else {
+    //     return;
+    // };
 
-    if *kill_flag {
-        return;
-    }
+    // if *kill_flag {
+    //     return;
+    // }
 
-    match player_server.recv.lock() {
+    match player_server.recv.try_lock() {
         Ok(recv) => {
             while let Ok(val) = recv.try_recv(){
                 event_writer.send(val);
             };
         },
-        Err(_) => todo!(),
+        Err(_) => {
+            //skip
+        },
     }
 }
 

@@ -66,35 +66,50 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
 
     // mut gizmos: Gizmos
 ){
+    let mut tank_actions: Vec<[bool;3]> = tank_query.iter()
+        .map(|_| [false; 3])
+        .collect();
     instruction_events.read()
         .for_each(|inst| {
             // println!("{P_FLAG} - {inst:?}");
 
             tank_query.iter_mut()
-                .for_each(|(mut transform, tank, player_entity)|{
+                .zip(&mut tank_actions)
+                .for_each(|(
+                    (mut transform, tank, player_entity),
+                    viable_actions
+                )|{
                     let transform = transform.as_mut();
 
-                    match inst {
+                    match (inst, &viable_actions) {
                         // movement
-                        Instruction::RotateLeft => update_rotation::<false>(
-                            transform,
-                            -TANK_ROTATION_SPEED * time.delta_seconds(),
+                        (Instruction::RotateLeft, [false, _, _]) => {
+                            update_rotation::<false>(
+                                transform,
+                                -TANK_ROTATION_SPEED * time.delta_seconds(),
 
-                            &rapier_context,
-                            player_entity,
+                                &rapier_context,
+                                player_entity,
 
-                            // &mut gizmos
-                        ),
-                        Instruction::RotateRight => update_rotation::<false>(
-                            transform,
-                            TANK_ROTATION_SPEED * time.delta_seconds(),
+                                // &mut gizmos
+                            );
+                            
+                            viable_actions[0] = true;
+                        },
+                        (Instruction::RotateRight, [false, _, _]) => {
+                            update_rotation::<false>(
+                                transform,
+                                TANK_ROTATION_SPEED * time.delta_seconds(),
 
-                            &rapier_context,
-                            player_entity,
+                                &rapier_context,
+                                player_entity,
 
-                            // &mut gizmos
-                        ),
-                        Instruction::MoveForward => {
+                                // &mut gizmos
+                            );
+
+                            viable_actions[0] = true;
+                        },
+                        (Instruction::MoveForward, [false, _, _]) => {
                             transform.translation = new_move_pos::<false>(
                                 transform.translation,
                                 transform.up().as_vec3(),
@@ -105,8 +120,10 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
 
                                 // &mut gizmos
                             );
+
+                            viable_actions[0] = true;
                         },
-                        Instruction::MoveBackward => {
+                        (Instruction::MoveBackward, [false, _, _]) => {
                             transform.translation = new_move_pos::<false>(
                                 transform.translation,
                                 transform.down().as_vec3(),
@@ -117,25 +134,31 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
 
                                 // &mut gizmos
                             );
+
+                            viable_actions[0] = true;
                         }
 
                         // turret
-                        Instruction::SpinTurretLeft => {
+                        (Instruction::SpinTurretLeft, [_, false, _]) => {
                             let mut turret_transform = turret_query.get_mut(tank.turret)
                                 .expect("Tank has lost ref it's turret");
                             let turret_transform = turret_transform.0.as_mut();
 
                             turret_transform.rotate_z(-TURRET_ROTATION_SPEED * time.delta_seconds());
+
+                            viable_actions[1] = true;
                         },
-                        Instruction::SpinTurretRight => {
+                        (Instruction::SpinTurretRight, [_, false, _]) => {
                             let mut turret_transform = turret_query.get_mut(tank.turret)
                                 .expect("Tank has lost ref it's turret");
                             let turret_transform = turret_transform.0.as_mut();
 
                             turret_transform.rotate_z(TURRET_ROTATION_SPEED * time.delta_seconds());
+
+                            viable_actions[1] = true;
                         },
 
-                        Instruction::Shoot => {
+                        (Instruction::Shoot, [_, _, false]) => {
                             let (
                                 _transform,
                                 global_transform,
@@ -151,10 +174,12 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                                         .rotation,
                                     source: player_entity,
                                 });
+                                viable_actions[2] = true;
 
                                 turret.0 = GunState::reload();
                             }
-                        }
+                        },
+                        _=> {}
                     }
                 });
         });

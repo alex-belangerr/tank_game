@@ -82,6 +82,7 @@ pub fn bullet_collision(
 
     rapier_context: Res<RapierContext>,
 ) {
+    // todo!() Replace bullet_query with a parallel iter
     for (bullet, transform, bullet_entity) in &bullet_query{
         let pos = transform.translation;
         let rot = 0.;
