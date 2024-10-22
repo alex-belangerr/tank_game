@@ -1,16 +1,18 @@
 use bevy::{
-    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
+    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Update}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
 use bevy_rapier2d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 #[cfg(feature = "debug")]
 use bevy_rapier2d::render::RapierDebugRenderPlugin;
 
+use camera::update_camera_pos;
 use map::MapPlugin;
 use tank::TankPlugin;
 
 pub mod map;
 pub mod tank;
+mod camera;
 
 pub struct EnginePlugin(pub bool);
 
@@ -22,6 +24,9 @@ impl Plugin for EnginePlugin {
                 
                 #[cfg(feature = "debug")]
                 app.add_plugins(RapierDebugRenderPlugin::default());
+
+                #[cfg(feature = "sexy")]
+                app.add_systems(Update, update_camera_pos);
             },
             false => {
                 app.add_plugins(MinimalPlugins)
