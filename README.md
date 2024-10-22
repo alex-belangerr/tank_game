@@ -92,7 +92,7 @@ The `tank_game` engine allows customization of game settings through various com
   - Destroy bullet on impact with tank or wall.
 - [X] **Tank Destruction**  
   - Destroy enemy tanks upon being hit by a bullet.
-- [ ] **End Game Logic**  
+- [X] **End Game Logic**  
   - Update game state when a tank is destroyed and determine the winner.
 
 ## Collision Handling
