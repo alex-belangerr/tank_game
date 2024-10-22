@@ -12,6 +12,7 @@ const REQUEST_WAIT: u64 = 10;
 #[derive(Debug, Clone, Copy)]
 struct PlayerData<const TURRET_RAYS: usize, const HULL_RAYS: usize> {
     pub pos: Vec2,
+    pub rot: f32,
     pub turret_rot: f32,
     pub turret_vision: [Option<VisionHit>; TURRET_RAYS],
     pub hull_vision: [Option<VisionHit>; HULL_RAYS],
@@ -21,6 +22,7 @@ impl<const TURRET_RAYS: usize, const HULL_RAYS: usize> Default for PlayerData<TU
     fn default() -> Self {
         Self {
             pos: Default::default(),
+            rot: Default::default(),
             turret_rot: Default::default(),
             turret_vision: [None; TURRET_RAYS],
             hull_vision: [None; HULL_RAYS]
@@ -32,6 +34,7 @@ impl<const TURRET_RAYS: usize, const HULL_RAYS: usize> Default for PlayerData<TU
 struct PlayerDataSerialized {
     pub game_id: String,
     pub pos: Vec2,
+    pub rot: f32,
     pub turret_rot: f32,
     pub turret_vision: Vec<Option<VisionHit>>,
     pub hull_vision: Vec<Option<VisionHit>>,
@@ -44,6 +47,7 @@ impl PlayerDataSerialized {
         PlayerDataSerialized{
             game_id: game_id.to_string(),
             pos: player_data.pos,
+            rot: player_data.rot,
             turret_rot: player_data.turret_rot,
             turret_vision: player_data.turret_vision.into(),
             hull_vision: player_data.hull_vision.into(),
@@ -53,6 +57,7 @@ impl PlayerDataSerialized {
 
     pub fn update(&mut self, player_data: &PlayerData<NUM_OF_TURRET_RAY, NUM_OF_HULL_RAY>) {
         self.pos = player_data.pos;
+        self.rot = player_data.rot;
         self.turret_rot = player_data.turret_rot;
         self.turret_vision = player_data.turret_vision.into();
         self.hull_vision = player_data.hull_vision.into();
@@ -64,6 +69,7 @@ impl<const T: usize, const H: usize> From<(String, PlayerData<T, H>)> for Player
         PlayerDataSerialized{
             game_id: game_id,
             pos: player_data.pos,
+            rot: player_data.rot,
             turret_rot: player_data.turret_rot,
             turret_vision: player_data.turret_vision.into(),
             hull_vision: player_data.hull_vision.into(),
@@ -307,6 +313,15 @@ pub fn update_player_data<const P_FLAG: u32>(
                 let pos = transform.translation();
 
                 Vec2::new(pos.x, pos.y)
+            },
+            rot: {
+                let rot = get_rotation_z({
+                    let up = transform.up();
+
+                    Vec2::new(up.x, up.y)
+                });
+
+                rot
             },
             turret_rot: get_rotation_z({
                 let dir = turret_transform.compute_transform().up().as_vec3();
