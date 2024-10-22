@@ -1,9 +1,11 @@
 //! This module manages map loading and generation in a Bevy-based game,
 //! including wall creation and player spawn point selection for tank gameplay.
+use std::fs;
+
 use bevy::{
     app::{Plugin, Startup, Update
     },
-    asset::{Asset, AssetApp, AssetServer, Assets, Handle},
+    asset::{Asset, AssetApp, AssetServer, Assets, Handle, LoadedFolder},
     math::Vec3,
     prelude::{
         in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
@@ -14,6 +16,7 @@ use bevy::{
 use bevy_rapier2d::prelude::Collider;
 use gen_state::Step;
 use map_loader::MapLoader;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::{engine::tank::gen::{create_minimal_tank, create_tank}, player::PlayerID};
@@ -54,8 +57,23 @@ pub struct Wall;
 /// - `asset_server`: The asset server resource for loading map assets.
 /// - `current_map`: The current map resource to store the loaded map.
 /// - `next_state`: A mutable reference to the next state in the game state management.
-pub fn load_map(asset_server: Res<AssetServer>, mut current_map: ResMut<CurrentMap>, mut next_state: ResMut<NextState<Step>>){
-    let map: Handle<Map> = asset_server.load("maps/map_1.ron");
+pub fn load_map(
+    asset_server: Res<AssetServer>,
+
+    mut current_map: ResMut<CurrentMap>,
+    mut next_state: ResMut<NextState<Step>>
+){
+    let map_folder: Vec<String> = fs::read_dir("assets/maps")
+        .expect("Unable to load \"assets/maps\"")
+        .into_iter()
+        .filter(|file| file.is_ok())
+        .map(|file| file.unwrap())
+        .map(|file| format!("{}", file.file_name().to_str().unwrap()))
+        .collect();
+
+    let i: usize = rand::random::<usize>();
+
+    let map: Handle<Map> = asset_server.load(format!("maps/{}", map_folder[i % map_folder.len()]));
 
     let current_map = current_map.as_mut();
     current_map.0 = Some(map);
