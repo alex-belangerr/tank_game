@@ -44,12 +44,11 @@ def bitmap_to_ron(image_path, buffer=10):
     spawn_points_str = ', '.join([f"({x}, {y})" for x, y in spawn_points])
 
     # Generate Rust code for the Map struct in RON format
-    map_ron = f"""
-pub struct Map {{
+    map_ron = f"""(
     dim: ({width}, {height}),
-    walls: vec![{walls_str}],
-    spawn_points: vec![{spawn_points_str}]
-}}"""
+    walls: [{walls_str}],
+    spawn_points: [{spawn_points_str}]
+)"""
 
     return map_ron
 
