@@ -5,7 +5,7 @@ use std::fs;
 use bevy::{
     app::{Plugin, Startup, Update
     },
-    asset::{Asset, AssetApp, AssetServer, Assets, Handle, LoadedFolder},
+    asset::{Asset, AssetApp, AssetServer, Assets, Handle},
     math::Vec3,
     prelude::{
         in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
@@ -16,7 +16,6 @@ use bevy::{
 use bevy_rapier2d::prelude::Collider;
 use gen_state::Step;
 use map_loader::MapLoader;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 
 use crate::{engine::tank::gen::{create_minimal_tank, create_tank}, player::PlayerID};
