@@ -1,5 +1,5 @@
 use std::{mem, net::IpAddr, sync::{mpsc::{self, Receiver, Sender}, Arc, Mutex, RwLock}, thread::{self, JoinHandle}, time::Duration};
-use bevy::{math::Vec2, prelude::{EventWriter, GlobalTransform, Query, Res, ResMut, Resource, With, Without}, utils::hashbrown::HashMap};
+use bevy::{log::warn, math::Vec2, prelude::{EventWriter, GlobalTransform, Query, Res, ResMut, Resource, With, Without}, utils::hashbrown::HashMap};
 use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
 
@@ -153,7 +153,17 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                     match response {
                         Ok(response) => {
                             if response.status().is_success() {
-                                let response: PlayerInstruction = response.json().unwrap();
+                                let response: PlayerInstruction = {
+                                    let response = response.json();
+
+                                    match response{
+                                        Ok(val) => val,
+                                        Err(err) => {
+                                            warn!("Failed to parse response for player - {P_FLAG}{err:#?}");
+                                            continue;
+                                        },
+                                    }
+                                };
 
                                 match response.action.as_str() {
                                     "shoot" => {
