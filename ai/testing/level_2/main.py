@@ -3,6 +3,7 @@ import argparse
 # from flask import Flask, request, json.dumps
 from fastapi import FastAPI, Request
 import json
+import math
 
 app = FastAPI()
 
@@ -21,11 +22,10 @@ async def start_game(request: Request):
     # Initialize game data
     games[game_id] = {
         'status': 'active',
-        'last_pos': None,  # Initialize last position for stuck detection,
-        'last_rot': None,
-        'stuck_counter': 0,
-        'stuck_check': False,
-        'shoot_counter': 0
+        'last_pos': [0,0],  # Initialize last position for stuck detection,
+        'turning': False,
+        'last_move': 'move_forward',
+        'i1': 0,
     }
     
     print(f"New game: {game_id}")
@@ -33,7 +33,7 @@ async def start_game(request: Request):
     return {'message': f'Game {game_id} started successfully', 'game_id': game_id}
 
 import timeit
-    
+
 @app.post('/brain')
 async def brain(request: Request):
     data = await request.json()
@@ -44,33 +44,20 @@ async def brain(request: Request):
         return {'error': 'Game ID is required'}, 400
     if game_id not in games:
         return {'error': 'Game not found'}, 404
+    
+    game_data = games[game_id]
+    game_data["i1"]+=1
 
-    # Extract hull vision data (8 rays), turret vision (5 rays), and position
+    if game_data["i1"] % 10 == 0:
+        return {"action": "shoot"}
+
     hull_vision = data.get('hull_vision', [])
     turret_vision = data.get('turret_vision', [])
     current_pos = data.get('pos')  # Current position of the tank
     current_rot = data.get('rot')
 
-    # Check if the tank has moved
-    if games[game_id]['last_pos'] is not None and games[game_id]['last_rot'] is not None and not games[game_id]['stuck_check']:
-        distance_moved = (
-            (current_pos[0] - games[game_id]['last_pos'][0]) ** 2 +
-            (current_pos[1] - games[game_id]['last_pos'][1]) ** 2
-        )** 0.5
-
-        rot = max(games[game_id]['last_rot'], current_rot) - min(games[game_id]['last_rot'], current_rot)
-
-        if distance_moved < 0.000001 and rot < 0.00001:  # Adjust threshold as needed
-            games[game_id]['stuck_check'] = True
-            games[game_id]['stuck_counter'] = 0
-        else: 
-            games[game_id]['stuck_check'] = False
-            games[game_id]['stuck_counter'] = 0
-    games[game_id]['last_rot'] = current_rot
-    games[game_id]['last_pos'] = current_pos  # Update last position
-
     # Threshold distance for detecting a wall
-    wall_threshold = 50.0
+    wall_threshold = 40.0
 
     # Function to process each ray
     def get_wall_distance(ray):
@@ -86,55 +73,72 @@ async def brain(request: Request):
     left_wall = get_wall_distance(hull_vision[7])   # Front-left
     right_wall = get_wall_distance(hull_vision[1])  # Front-right
 
-    # Handle anti-stuck behavior
-    if games[game_id]['stuck_check']:
-        if games[game_id]['stuck_counter'] < 10:
-            action="move_backward"
-            if games[game_id]['stuck_counter'] % 2 == 0:
-                action = 'move_backward'
-            else:
-                action = 'rotate_left'
-                    
-            print(games[game_id]['stuck_counter'])
-            games[game_id]['stuck_counter'] = 1 + games[game_id]['stuck_counter']
-            
-            print(games[game_id]['stuck_counter'])
+    print(front_wall)
+    print(left_wall)
+    print(right_wall)
+    print(back_wall)
+    print(game_data["last_move"])
 
-            print(f"Game {game_id} action: {action} (anti-stuck, iterations left: {games[game_id]['stuck_counter']})")
-            return {'action': action}
-        else:
-            games[game_id]['stuck_check'] = False
-            games[game_id]['stuck_counter'] = 0
+    # print(int(current_rot * 10) % int(math.pi / 4. * 10))
+    if not game_data["turning"]:
+        if left_wall is not None:
+            if left_wall < wall_threshold:
+                game_data["turning"] = True
+                game_data["last_move"] = "rotate_right"
+                return {"action": "rotate_right"}
+        if right_wall is not None:
+            if right_wall < wall_threshold:
+                game_data["turning"] = True
+                game_data["last_move"] = "rotate_left"
+                return {"action": "rotate_left"}
+        if front_wall is None:
+            game_data["last_move"] = "move_forward"
+            return {"action": "move_forward"}
 
-    # AI Logic for Movement (based on hull vision)
-    if front_wall and front_wall > wall_threshold:
-        # Wall detected directly in front
-        if left_wall and left_wall > wall_threshold and right_wall and right_wall < wall_threshold:
-            # If there's a wall on both sides, choose to rotate away from the closer wall
-            if left_wall < right_wall:
-                action = 'rotate_right'  # Rotate right if the left wall is closer
-            else:
-                action = 'rotate_left'   # Rotate left if the right wall is closer
-        elif left_wall and left_wall < wall_threshold:
-            # If there's a wall to the left, turn right
-            action = 'rotate_right'
-        elif right_wall and right_wall < wall_threshold:
-            # If there's a wall to the right, turn left
-            action = 'rotate_left'
-        else:
-            # If no walls are close on either side, you can choose a default action
-            action = 'move_forward'  # Or any other suitable action
+        if front_wall < wall_threshold:
+            game_data["turning"] = True
+            game_data["last_move"] = "rotate_left"
+            return {"action": "rotate_left"}
+        
+        game_data["last_move"] = "move_forward"
+        return {"action": "move_forward"}
+    elif int(current_rot * 10) % int(math.pi / 4. * 10) < 3:
+        
+        game_data["last_move"] = "move_forward"
+        game_data["turning"] = False
+        return {"action": "move_forward"}
+    
     else:
-        # No walls in front or sides, move forward
-        action = 'move_forward'
-
-
-    # Shoot every second brain call and only if a wall is detected within turret vision
-    games[game_id]['shoot_counter'] += 1
-    if games[game_id]['shoot_counter'] % 5 == 0:
-        action = 'shoot'
-
-    return {'action': action}
+        if left_wall is not None and right_wall is not None:
+            print(f"dist_between left and right - {abs(left_wall - right_wall)}")
+            if abs(left_wall - right_wall) < 15:
+                game_data["turning"] = False
+                if front_wall is not None and back_wall is not None:
+                    if front_wall < back_wall:
+                        game_data["last_move"] = "move_backward"
+                        return {"action": "move_backward"}
+                    game_data["last_move"] = "move_forward"
+                    return {"action": "move_forward"}
+                    
+                elif front_wall is not None:
+                    game_data["last_move"] = "move_backward"
+                    return {"action": "move_backward"}
+                
+                game_data["last_move"] = "move_forward"
+                return {"action": "move_forward"}
+            elif left_wall < right_wall:
+                game_data["last_move"] = "rotate_right"
+                return {"action": "rotate_right"}
+            else:
+                game_data["last_move"] = "rotate_left"
+                return {"action": "rotate_left"}
+        elif left_wall is not None:
+            game_data["last_move"] = "rotate_right"
+            return {"action": "rotate_right"}
+        elif right_wall is not None:
+            game_data["last_move"] = "rotate_left"
+            return {"action": "rotate_left"}
+        return {"action": game_data["last_move"]}
 
 @app.post('/win')
 async def win(request: Request):
