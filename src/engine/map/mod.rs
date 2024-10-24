@@ -8,10 +8,10 @@ use bevy::{
     asset::{Asset, AssetApp, AssetServer, Assets, Handle},
     math::Vec3,
     prelude::{
-        in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
+        in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, Mesh, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
     },
     reflect::Reflect,
-    sprite::Sprite
+    sprite::{ColorMaterial, Sprite}
 };
 use bevy_rapier2d::prelude::Collider;
 use gen_state::Step;
@@ -19,6 +19,8 @@ use map_loader::MapLoader;
 use serde::{Deserialize, Serialize};
 
 use crate::{engine::tank::gen::{create_minimal_tank, create_tank}, player::PlayerID};
+
+use super::tank::material::TankMaterial;
 
 pub mod map_loader;
 pub mod gen_state;
@@ -186,6 +188,8 @@ pub fn generate_map(
     maps: Res<Assets<Map>>,
 
     asset_server: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<TankMaterial>>,
     
     mut next_state: ResMut<NextState<Step>>
 ){
@@ -279,6 +283,8 @@ pub fn generate_map(
             p1_spawn.1 as f32 * WALL_SIZE,
             0,
             &mut commands,
+            &mut meshes,
+            &mut materials,
             &asset_server
         );
         commands.entity(p1)
@@ -291,6 +297,8 @@ pub fn generate_map(
             p2_spawn.1 as f32 * WALL_SIZE,
             1,
             &mut commands,
+            &mut meshes,
+            &mut materials,
             &asset_server
         );
         commands.entity(p2)

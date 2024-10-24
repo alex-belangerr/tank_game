@@ -1,9 +1,9 @@
 use std::{f32::consts::PI, time::Duration};
 
-use bevy::{asset::AssetServer, math::Vec3, prelude::{BuildChildren, Commands, Component, Entity, GlobalTransform, Res, Transform}, sprite::SpriteBundle, time::Timer};
+use bevy::{asset::{AssetServer, Assets}, color::{palettes::css::PURPLE, Color, LinearRgba}, math::Vec3, pbr::MaterialMeshBundle, prelude::{default, BuildChildren, Commands, Component, Entity, GlobalTransform, Mesh, Rectangle, Res, ResMut, Transform}, render::{mesh::{Indices, PrimitiveTopology}, render_asset::RenderAssetUsages}, sprite::{ColorMaterial, MaterialMesh2dBundle, SpriteBundle}, time::Timer};
 use bevy_rapier2d::prelude::Collider;
 
-use super::vision::{VisionRay, HULL_RAY_MAX_DIST, NUM_OF_HULL_RAY, NUM_OF_TURRET_RAY, TURRET_RAY_MAX_DIST, TURRET_VISION_ANGLE};
+use super::{material::TankMaterial, vision::{VisionRay, HULL_RAY_MAX_DIST, NUM_OF_HULL_RAY, NUM_OF_TURRET_RAY, TURRET_RAY_MAX_DIST, TURRET_VISION_ANGLE}};
 
 
 
@@ -106,6 +106,27 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
     tank_id
 }
 
+pub fn rect(scale: f32) -> Mesh {
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::RENDER_WORLD,
+    );
+
+    mesh.insert_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-1., -1., 0.0],
+            [1., -1., 0.0],
+            [1., 1.5, 0.0],
+            [-1., 1., 0.0],
+        ]
+    );
+
+    mesh.insert_indices(Indices::U32(vec![0, 1, 3, 3, 2, 1]));
+
+    return mesh
+}
+
 /// Creates a tank entity at the specified position with a turret and assigns it to a team,
 /// loading the appropriate textures for rendering.
 ///
@@ -121,7 +142,15 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
 ///
 /// This function spawns both a tank and its associated turret with the specified textures,
 /// sets their initial positions, and links the turret as a child of the tank.
-pub fn create_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands, asset_server: &Res<AssetServer>) -> Entity {
+pub fn create_tank(
+    x: f32,
+    y: f32,
+    team_id: u8,
+    commands: &mut Commands,
+    mut meshes: &mut ResMut<Assets<Mesh>>,
+    mut materials: &mut ResMut<Assets<TankMaterial>>,
+    asset_server: &Res<AssetServer>
+) -> Entity {
     // todo!() - not worth it but could reduce repetition to run `create_minimal_tank` and just add sprite & texture on top
     let turret_id = commands.spawn((
         Turret::default(),
@@ -140,13 +169,14 @@ pub fn create_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands, asset_s
             team_id: team_id,
             turret: turret_id
         },
-        SpriteBundle{
+        MaterialMesh2dBundle {
+            mesh: meshes.add(Rectangle::from_length(32.)).into(),
             transform: Transform{
                 translation: Vec3{ x: x, y: y, z: TANK_HEIGHT },
-                ..Default::default()
+                ..default()
             },
-            texture: asset_server.load("textures\\tanks\\hull.png"),
-            ..Default::default()
+            material: materials.add(TankMaterial{ colour: LinearRgba::new(1., 0., 0., 1.)  }),
+            ..default()
         },
         Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),
         VisionRay::<NUM_OF_HULL_RAY, Tank>::new(
