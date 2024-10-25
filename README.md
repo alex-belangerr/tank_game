@@ -1,4 +1,3 @@
-# tank_game
 # tank_game: AI Competition Game Engine
 
 This repository contains **tank_game**, a customizable framework designed for an AI competition where players program and compete using autonomous tanks. The goal of the game is simple: **the last tank standing wins**.
@@ -8,13 +7,61 @@ This repository contains **tank_game**, a customizable framework designed for an
   
 - **AI Flexibility**: The AI controlling each tank can range from a simple decision tree using basic conditional logic (if-else statements) to a sophisticated machine learning model for advanced strategies.
   
-- **Survival Objective**: The game operates as a survival challenge where players compete to keep their tank alive while eliminating opponents. The last surviving tank is declared the winner.
+- **Survival Objective**: The game operates as a survival challenge where players compete to keep their tank alive while eliminating the opponent. The last surviving tank is declared the winner.
 
 - **Optional Player Mode**: Players can opt to play against their own AI-driven tank to test and refine strategies.
 
 This game engine serves as the foundation for participants to develop, test, and refine their AI models in a competitive yet accessible environment.
 
-# Command-Line Arguments for `tank_game`
+# Set Up
+
+## Prerequisites
+1. Install [Rust](https://www.rust-lang.org/tools/install) if you want to compile the game from source.
+2. Clone this repository and navigate into the project directory.
+
+## Downloading a Release
+
+For convenience, you can download a pre-built release of the game without needing to compile it yourself. Visit the [Releases](https://github.com/uocsclub/tank_game/releases) page and download the latest version for your platform.
+
+After downloading, extract the files and ensure the `assets` folder is in the same directory as the executable.
+
+## Compilation (Optional)
+
+If you prefer to compile the game yourself, use the following command in the terminal:
+
+```
+cargo build [--features "debug cinematic"]
+```
+
+**Features**
+- `debug`: Enables additional debugging information for troubleshooting.
+- `cinematic`: Activates cinematic effects within the game.
+
+Specify any optional features in the command. You may omit `--features` if you do not wish to enable any optional features.
+
+## Adding Assets
+
+After compiling, copy the `assets` folder to the same directory as the executable:
+
+## Running the Game
+
+1. **Start AI Servers (Optional):**  
+
+If you want to use AI for players, start your AI servers for player 1 and player 2 before launching the game. Alternatively, if you prefer manual control, you can use keyboard inputs instead.
+
+2. **Launch the Game:**  
+
+Run the game with:
+```
+cargo run [-- <optional_params>]
+```
+Or, if you’ve compiled a binary:
+```
+./game [-- <optional_params>]
+```
+For a list of supported parameters, see the [Command Line Arguments](#command-line-arguments) section.
+
+# Command Line Arguments
 
 The `tank_game` engine allows customization of game settings through various command-line arguments. Below is a list of all available optional arguments, along with their default values if not specified.
 
@@ -61,6 +108,79 @@ The `tank_game` engine allows customization of game settings through various com
 # Set Player 1 to use WASD keys and Player 2 to use a REST API at 127.0.0.1:8080
 ./tank_game -p1 wasd -p2 127.0.0.1:8080
 ```
+
+
+# AI API
+
+The AI REST API includes the following routes:
+
+## 1. Start Game
+- **Endpoint**: `POST /start_game`
+- **Description**: Initializes a new game instance.
+- **Expected Input**: 
+  - JSON object containing the game data structure, including:
+    - `game_id`
+    - Initial tank position
+- **Response**: HTTP response with a 200 series code.
+
+## 2. Brain Function
+- **Endpoint**: `POST /brain`
+- **Description**: Processes the current game state and determines the next action for the tank.
+- **Expected Input**: 
+  - JSON object containing the AI's sensor data.
+
+![Example of tank inputs](docs//image.png "Example of tank inputs")
+
+```rust
+{
+  "game_id": str,                       // Unique identifier for the game instance
+  "pos": Tuple[f32, f32],               // Tank's position in the game world (x, y coordinates)
+  "rot": f32,                           // Current rotation angle of the tank in radians
+  "turret_rot": f32,                    // Current rotation angle of the turret in radians
+  "turret_vision": List[{"Wall": f32} | {"Enemy": f32} | null; 5], // Vision data for the turret
+  "hull_vision": List[{"Wall": f32} | {"Enemy": f32} | null; 8]  // Vision data for the hull
+}
+```
+
+### Field Descriptions
+- **game_id**: Unique string identifier for the game session.
+- **pos**: A tuple representing the tank's position in the game world (x, y coordinates).
+- **rot**: Current rotation angle of the tank in radians.
+- **turret_rot**: Current rotation angle of the turret relative to the tank, in radians.
+- **turret_vision**: 
+  - Array containing up to five objects or `null` values representing distances to obstacles detected by the turret.
+  - Each object contains:
+    - **Wall**: Distance to the nearest wall (float).
+    - **Enemy**: Distance to the nearest enemy (float).
+    - `null` indicates an area that is not visible.
+- **hull_vision**: 
+  - Array containing up to eight objects or `null` values indicating distances to walls or enemies detected by the tank’s hull.
+  - Order: N, NW, W, SW, S, SE, E, NE.
+
+This structured data format enables the AI to make informed decisions based on the tank's position, orientation, and surroundings.
+
+- **Response**: JSON object in the format `{"action": "some action"}`
+- **Expected Actions**:
+  - `"shoot"`: Fires the turret at an enemy.
+  - `"move_forward"`: Moves the tank forward.
+  - `"move_backward"`: Moves the tank backward.
+  - `"rotate_left"`: Rotates the tank to the left.
+  - `"rotate_right"`: Rotates the tank to the right.
+  - `"spin_left"`: Spins the turret to the left.
+  - `"spin_right"`: Spins the turret to the right.
+  - `"wait"`: Takes no action.
+
+## 3. Win Condition
+- **Endpoint**: `POST /win`
+- **Description**: Called when the tank wins the game.
+- **Expected Input**: JSON object containing game data (optional).
+- **Response**: HTTP response with a 200 series code.
+
+## 4. Loss Condition
+- **Endpoint**: `POST /loss`
+- **Description**: Called when the tank loses the game.
+- **Expected Input**: JSON object containing game data (optional).
+- **Response**: HTTP response with a 200 series code.
 
 # Todo
 
