@@ -270,13 +270,13 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
         };
         let mut tmp_server: Option<JoinHandle<()>> = None;
 
+        mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
             Some(join_handle) => {
                 let _result = join_handle.join();
                 true
             },
             None => {
-                mem::swap(&mut *server, &mut tmp_server);
                 true
             },
         }
@@ -292,14 +292,14 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
             return false;
         };
         let mut tmp_server: Option<JoinHandle<()>> = None;
-
+        
+        mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
             Some(join_handle) => {
                 let _result = join_handle.join();
                 true
             },
             None => {
-                mem::swap(&mut *server, &mut tmp_server);
                 true
             },
         }
