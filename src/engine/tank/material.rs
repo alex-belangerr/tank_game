@@ -1,24 +1,21 @@
-use bevy::{asset::Asset, color::LinearRgba, reflect::TypePath, render::{mesh::MeshVertexBufferLayoutRef, render_resource::{AsBindGroup, RenderPipelineDescriptor, ShaderRef, SpecializedMeshPipelineError}}, sprite::Material2d};
+use bevy::{asset::{Asset, Handle}, color::LinearRgba, prelude::Image, reflect::TypePath, render::render_resource::{AsBindGroup, ShaderRef}, sprite::Material2d};
 
 #[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-// #[bind_group_data(TankMaterialKey)]
+#[bind_group_data(TankMaterialKey)]
 pub struct TankMaterial {
     #[uniform(0)]
-    pub(crate) colour: LinearRgba,
+    pub(crate) primary_colour: LinearRgba,
+    #[uniform(1)]
+    pub(crate) secondary_colour: LinearRgba,
+
+    #[texture(2)]
+    pub(crate) colour_texture: Handle<Image>,
 }
 
 impl Material2d for TankMaterial {
     fn fragment_shader() -> ShaderRef {
         "shaders/tank.wgsl".into()
     }
-
-    // fn specialize(
-    //     _descriptor: &mut RenderPipelineDescriptor,
-    //     _layout: &MeshVertexBufferLayoutRef,
-    //     _key: Material2dKey<Self>,
-    // ) -> Result<(), SpecializedMeshPipelineError> {
-    //     Ok(())
-    // }
 }
 
 #[derive(Eq, PartialEq, Hash, Clone)]

@@ -1,6 +1,6 @@
 use std::{f32::consts::PI, time::Duration};
 
-use bevy::{asset::{AssetServer, Assets}, color::{palettes::css::PURPLE, Color, LinearRgba}, math::Vec3, pbr::MaterialMeshBundle, prelude::{default, BuildChildren, Commands, Component, Entity, GlobalTransform, Mesh, Rectangle, Res, ResMut, Transform}, render::{mesh::{Indices, PrimitiveTopology}, render_asset::RenderAssetUsages}, sprite::{ColorMaterial, MaterialMesh2dBundle, SpriteBundle}, time::Timer};
+use bevy::{asset::{AssetServer, Assets}, color::LinearRgba, math::Vec3, prelude::{default, BuildChildren, Commands, Component, Entity, GlobalTransform, Mesh, Rectangle, Res, ResMut, Transform}, sprite::MaterialMesh2dBundle, time::Timer};
 use bevy_rapier2d::prelude::Collider;
 
 use super::{material::TankMaterial, vision::{VisionRay, HULL_RAY_MAX_DIST, NUM_OF_HULL_RAY, NUM_OF_TURRET_RAY, TURRET_RAY_MAX_DIST, TURRET_VISION_ANGLE}};
@@ -107,23 +107,10 @@ pub fn create_minimal_tank(x: f32, y: f32, team_id: u8, commands: &mut Commands)
 }
 
 pub fn rect(scale: f32) -> Mesh {
-    let mut mesh = Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::RENDER_WORLD,
-    );
+    let mesh: Mesh = Rectangle::from_length(scale).into();
 
-    mesh.insert_attribute(
-        Mesh::ATTRIBUTE_POSITION,
-        vec![
-            [-1., -1., 0.0],
-            [1., -1., 0.0],
-            [1., 1.5, 0.0],
-            [-1., 1., 0.0],
-        ]
-    );
-
-    mesh.insert_indices(Indices::U32(vec![0, 1, 3, 3, 2, 1]));
-
+    println!("{:#?}", mesh);
+    
     return mesh
 }
 
@@ -146,22 +133,29 @@ pub fn create_tank(
     x: f32,
     y: f32,
     team_id: u8,
+    primary_colour: LinearRgba,
     commands: &mut Commands,
-    mut meshes: &mut ResMut<Assets<Mesh>>,
-    mut materials: &mut ResMut<Assets<TankMaterial>>,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<TankMaterial>>,
     asset_server: &Res<AssetServer>
 ) -> Entity {
     // todo!() - not worth it but could reduce repetition to run `create_minimal_tank` and just add sprite & texture on top
     let turret_id = commands.spawn((
         Turret::default(),
-        SpriteBundle{
+        MaterialMesh2dBundle {
+            mesh: meshes.add(Rectangle::from_length(32.)).into(),
             transform: Transform{
                 translation: Vec3{ x: 0., y: 0., z: TURRET_HEIGHT },
                 ..Default::default()
             },
-            texture: asset_server.load("textures\\tanks\\turret.png"),
-            ..Default::default()
-        }
+            material: materials.add(
+                TankMaterial{
+                    primary_colour: LinearRgba::new(1., 1., 1., 1.),
+                    secondary_colour: primary_colour,
+                    colour_texture: asset_server.load("textures\\tanks\\turret.png")
+                }),
+            ..default()
+        },
     )).id();
 
     let tank_id = commands.spawn((
@@ -175,7 +169,12 @@ pub fn create_tank(
                 translation: Vec3{ x: x, y: y, z: TANK_HEIGHT },
                 ..default()
             },
-            material: materials.add(TankMaterial{ colour: LinearRgba::new(1., 0., 0., 1.)  }),
+            material: materials.add(
+                TankMaterial{
+                    primary_colour: primary_colour,
+                    secondary_colour: LinearRgba::new(1., 1., 1., 1.),
+                    colour_texture: asset_server.load("textures\\tanks\\hull.png")
+                }),
             ..default()
         },
         Collider::cuboid(TANK_SIZE/2., TANK_SIZE/2.),

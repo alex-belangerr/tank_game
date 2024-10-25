@@ -1,7 +1,7 @@
 //! This module handles the gameplay mechanics for tanks in a Bevy-based game,
 //! including their creation, movement, turret control, and associated instructions.
 
-use bevy::{app::{Plugin, Update}, pbr::MaterialPlugin, sprite::Material2dPlugin};
+use bevy::{app::{Plugin, Update}, sprite::Material2dPlugin};
 use bullet::{bullet_collision, create_bullet, create_bullet_minimal, reload_gun, update_bullet_pos, NewBullet};
 use instruction::{process_tank_instruction, Instruction};
 use material::TankMaterial;

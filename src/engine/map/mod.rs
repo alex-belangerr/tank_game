@@ -4,14 +4,9 @@ use std::fs;
 
 use bevy::{
     app::{Plugin, Startup, Update
-    },
-    asset::{Asset, AssetApp, AssetServer, Assets, Handle},
-    math::Vec3,
-    prelude::{
+    }, asset::{Asset, AssetApp, AssetServer, Assets, Handle}, color::LinearRgba, math::Vec3, prelude::{
         in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, Mesh, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
-    },
-    reflect::Reflect,
-    sprite::{ColorMaterial, Sprite}
+    }, reflect::Reflect, sprite::Sprite
 };
 use bevy_rapier2d::prelude::Collider;
 use gen_state::Step;
@@ -282,6 +277,7 @@ pub fn generate_map(
             p1_spawn.0 as f32 * WALL_SIZE,
             p1_spawn.1 as f32 * WALL_SIZE,
             0,
+            LinearRgba::new(1., 0., 0., 1.),
             &mut commands,
             &mut meshes,
             &mut materials,
@@ -296,6 +292,7 @@ pub fn generate_map(
             p2_spawn.0 as f32 * WALL_SIZE,
             p2_spawn.1 as f32 * WALL_SIZE,
             1,
+            LinearRgba::new(0., 0., 1., 1.),
             &mut commands,
             &mut meshes,
             &mut materials,
