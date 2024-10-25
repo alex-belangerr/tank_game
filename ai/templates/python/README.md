@@ -4,7 +4,7 @@ A Python template for building an AI agent for `tank_game`. This setup provides 
 
 ## Prerequisites
 
-- Python 3.8 or newer
+- Python 3.11 or newer
 - pip
 
 ## Setup

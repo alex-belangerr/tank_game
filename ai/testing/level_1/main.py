@@ -1,20 +1,18 @@
+import uvicorn
 import argparse
-from flask import Flask, request, jsonify
+from fastapi import FastAPI, HTTPException, Request
 
-app = Flask(__name__)
+app = FastAPI()
 
-# In-memory storage for game data (for simplicity)
 games = {}
 
-@app.route('/start_game', methods=['POST'])
-def start_game():
-    data = request.get_json()
-    print(data)
+@app.post('/start_game')
+async def start_game(request: Request):
+    data = await request.json()
     game_id = data.get('game_id')
-    
     if not game_id:
         print("No game id")
-        return jsonify({'error': 'Game ID is required'}), 400
+        raise HTTPException(status_code=400, detail="No game id")
 
     # Initialize game data
     games[game_id] = {
@@ -23,71 +21,67 @@ def start_game():
 
     print(f"New game: {game_id}")
 
-    return jsonify({'message': f'Game {game_id} started successfully', 'game_id': game_id}), 200
+    return {'message': f'Game {game_id} started successfully', 'game_id': game_id}
 
-
-@app.route('/brain', methods=['POST'])
-def brain():
-    data = request.get_json()
+@app.post('/brain')
+async def brain(request: Request):
+    data = await request.json()
     game_id = data.get('game_id')
 
-    # Request sensor data
-
     if not game_id:
-        return jsonify({'error': 'Game ID is required'}), 400
+        raise HTTPException(status_code=404, detail="Game not found")
 
     if game_id not in games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise HTTPException(status_code=404, detail="Game not found")
 
     print(data)
 
-    return jsonify({'action': 'spin_left'}), 200
+    return {'action': 'spin_left'}
 
-
-@app.route('/win', methods=['POST'])
-def win():
-    data = request.get_json()
+@app.post('/win')
+async def win(request: Request):
+    data = await request.json()
     game_id = data.get('game_id')
 
     if not game_id:
-        return jsonify({'error': 'Game ID is required'}), 400
+        raise HTTPException(status_code=404, detail="Game not found")
 
     if game_id not in games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise HTTPException(status_code=404, detail="Game not found")
 
     # Mark the game as ended
     del games[game_id]
 
     print(":)")
 
-    return jsonify({'message': f'Game {game_id} ended successfully', 'game_id': game_id}), 200
+    return {'message': f'Game {game_id} ended successfully', 'game_id': game_id}
 
-@app.route('/loss', methods=['POST'])
-def loss():
-    data = request.get_json()
+
+@app.post('/loss')
+async def loss(request: Request):
+    data = await request.json()
     game_id = data.get('game_id')
 
     if not game_id:
-        return jsonify({'error': 'Game ID is required'}), 400
+        raise HTTPException(status_code=404, detail="Game not found")
 
     if game_id not in games:
-        return jsonify({'error': 'Game not found'}), 404
+        raise HTTPException(status_code=404, detail="Game not found")
 
     # Mark the game as ended
     del games[game_id]
 
     print(":(")
 
-    return jsonify({'message': f'Game {game_id} ended successfully', 'game_id': game_id}), 200
-
+    return {'message': f'Game {game_id} ended successfully', 'game_id': game_id}
 
 if __name__ == '__main__':
     # Argument parser for handling the port input
-    parser = argparse.ArgumentParser(description="Flask Tank Game AI")
+    parser = argparse.ArgumentParser(description="Tank Game AI")
     parser.add_argument('--port', type=int, default=5000, help='Port to run the server on')
     
     # Parse the arguments
     args = parser.parse_args()
     
     # Run the app on the specified port
-    app.run(debug=True, port=args.port)
+    uvicorn.run(app, host="0.0.0.0", port=args.port)
