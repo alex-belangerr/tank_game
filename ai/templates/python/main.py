@@ -20,7 +20,7 @@ async def brain(request: Request):
     
     # TODO - YOUR CODE GOES HERE
 
-    return {'message': f''}
+    return {'action': ''}
 
 @app.post('/win')
 async def win(request: Request):
