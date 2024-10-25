@@ -1,12 +1,16 @@
 use bevy::{
-    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Update}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
+    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
 use bevy_rapier2d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 #[cfg(feature = "debug")]
 use bevy_rapier2d::render::RapierDebugRenderPlugin;
 
+#[cfg(feature = "cinematic")]
 use camera::update_camera_pos;
+#[cfg(feature = "cinematic")]
+use bevy::app::Update;
+
 use map::MapPlugin;
 use tank::TankPlugin;
 
@@ -21,11 +25,15 @@ impl Plugin for EnginePlugin {
         match self.0 {
             true => {
                 app.add_plugins(DefaultPlugins);
+                    // .insert_resource(AmbientLight {
+                    //     color: Color::WHITE,
+                    //     brightness: 1.0 / 5.0f32,
+                    // });
                 
                 #[cfg(feature = "debug")]
                 app.add_plugins(RapierDebugRenderPlugin::default());
 
-                #[cfg(feature = "sexy")]
+                #[cfg(feature = "cinematic")]
                 app.add_systems(Update, update_camera_pos);
             },
             false => {
