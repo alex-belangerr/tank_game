@@ -6,7 +6,7 @@ use bevy_rapier2d::plugin::{NoUserData, RapierPhysicsPlugin};
 #[cfg(feature = "debug")]
 use bevy_rapier2d::render::RapierDebugRenderPlugin;
 
-use camera::resize_notification;
+use camera::resize_camera;
 #[cfg(feature = "cinematic")]
 use camera::update_camera_pos;
 #[cfg(feature = "cinematic")]
@@ -36,7 +36,7 @@ impl Plugin for EnginePlugin {
 
                 #[cfg(feature = "cinematic")]
                 app.add_systems(Update, update_camera_pos);
-                app.add_systems(Update, resize_notification);
+                app.add_systems(Update, resize_camera);
             },
             false => {
                 app.add_plugins(MinimalPlugins)

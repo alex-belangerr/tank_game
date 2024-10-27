@@ -1,4 +1,4 @@
-use bevy::{asset::Assets, math::{Vec2, Vec3}, prelude::{Camera, EventReader, Events, OrthographicProjection, Query, Res, Transform, With, Without}, window::WindowResized};
+use bevy::{asset::Assets, math::{Vec2, Vec3}, prelude::{Camera, EventReader, OrthographicProjection, Query, Res, Transform, With, Without}, window::WindowResized};
 
 use super::{map::{CurrentMap, Map, WALL_SIZE}, tank::gen::Tank};
 
@@ -35,7 +35,7 @@ pub fn update_camera_pos(
 }
 
 
-pub fn resize_notification(
+pub fn resize_camera(
     mut resize_reader: EventReader<WindowResized>,
     
     current_map: Res<CurrentMap>,
