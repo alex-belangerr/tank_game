@@ -1,11 +1,12 @@
 use bevy::{
-    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
+    a11y::AccessibilityPlugin, app::{PanicHandlerPlugin, Plugin, Update}, asset::AssetPlugin, diagnostic::DiagnosticsPlugin, log::LogPlugin, prelude::{HierarchyPlugin, TransformPlugin}, state::app::StatesPlugin, DefaultPlugins, MinimalPlugins
 };
 use bevy_rapier2d::plugin::{NoUserData, RapierPhysicsPlugin};
 
 #[cfg(feature = "debug")]
 use bevy_rapier2d::render::RapierDebugRenderPlugin;
 
+use camera::resize_notification;
 #[cfg(feature = "cinematic")]
 use camera::update_camera_pos;
 #[cfg(feature = "cinematic")]
@@ -35,6 +36,7 @@ impl Plugin for EnginePlugin {
 
                 #[cfg(feature = "cinematic")]
                 app.add_systems(Update, update_camera_pos);
+                app.add_systems(Update, resize_notification);
             },
             false => {
                 app.add_plugins(MinimalPlugins)

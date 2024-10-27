@@ -1,6 +1,6 @@
-use bevy::{math::{Vec2, Vec3}, prelude::{Camera, Query, Transform, With, Without}};
+use bevy::{asset::Assets, math::{Vec2, Vec3}, prelude::{Camera, EventReader, Events, OrthographicProjection, Query, Res, Transform, With, Without}, window::WindowResized};
 
-use super::tank::gen::Tank;
+use super::{map::{CurrentMap, Map, WALL_SIZE}, tank::gen::Tank};
 
 
 
@@ -32,4 +32,45 @@ pub fn update_camera_pos(
                 0.
             );
         });
+}
+
+
+pub fn resize_notification(
+    mut resize_reader: EventReader<WindowResized>,
+    
+    current_map: Res<CurrentMap>,
+    map_res: Res<Assets<Map>>,
+
+    mut query_camera: Query<(&mut OrthographicProjection, &mut Transform)>,
+) {
+    let Some(map) = map_res.get(
+        {
+            let Some(current_map) = &current_map.0 else {
+                return ;
+            };
+
+            current_map
+        }) else {
+        return;
+    };
+
+    let Ok((mut camera_projection, mut transform)) = query_camera.get_single_mut() else {
+        return;
+    };
+    let camera_projection = camera_projection.as_mut();
+    let transform = transform.as_mut();
+
+    let Some(window_size) = resize_reader.read().last() else {
+        return ;
+    };
+
+    camera_projection.scale = match window_size.width > window_size.height {
+        false => ((1. + map.dim.0 as f32) * WALL_SIZE) / window_size.width,
+        true => ((1. + map.dim.1 as f32) * WALL_SIZE) / window_size.height,
+    };
+    transform.translation = Vec3{
+        x: (map.dim.0 - 1) as f32 / 2. * WALL_SIZE,
+        y: (map.dim.1 - 1) as f32 / 2. * WALL_SIZE,
+        z: 1. 
+    }
 }

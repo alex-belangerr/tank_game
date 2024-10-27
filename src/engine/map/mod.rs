@@ -29,9 +29,9 @@ pub type Coord = (usize, usize);
 /// - `spawn_points`: A vector of coordinates representing possible spawn points for tanks.
 #[derive(Debug, Clone, Asset, Reflect, Deserialize, Serialize)]
 pub struct Map{
-    dim: (usize, usize),
-    walls: Vec<Coord>,
-    spawn_points: Vec<Coord>
+    pub dim: (usize, usize),
+    pub walls: Vec<Coord>,
+    pub spawn_points: Vec<Coord>
 }
 
 /// Holds the current map being used in the game, referenced by its asset handle.
@@ -41,7 +41,7 @@ pub struct Map{
 #[derive(Debug, Clone, Resource, Default)]
 pub struct CurrentMap(pub Option<Handle<Map>>);
 
-const WALL_SIZE: f32 = 32.;
+pub const WALL_SIZE: f32 = 32.;
 
 /// A component representing a wall in the game.
 #[derive(Debug, Clone, Copy, Component)]
