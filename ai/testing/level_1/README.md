@@ -18,7 +18,9 @@ pip install -r requirements.txt
 
 Start the server on a specified port (e.g., 5000):
 
+```
 python main.py --port 5000
+```
 
 ## API Endpoints
 
