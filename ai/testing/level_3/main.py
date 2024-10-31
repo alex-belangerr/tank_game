@@ -86,12 +86,15 @@ async def brain(request: Request):
         "w": data["hull_vision"][6],
         "nw": data["hull_vision"][7]
     }
-    
+
+        
     if turning is None:
-        games[game_id]["counting"] = 0
+        
         forward_blocked = is_blocked(sensors['n'], min_dist=45.)[0] or\
             is_blocked(sensors['ne'], min_dist=40.)[0] or\
             is_blocked(sensors['nw'], min_dist=40.)[0]
+        
+
         if forward_blocked:
             print("time to turn")
             left_dist = max(
@@ -112,6 +115,35 @@ async def brain(request: Request):
             return {"action": "move_backward"}
         else:
             print("Forward")
+
+            if dist(old_pos, current_pos) <= 0.000001:
+                counting=1+(counting % 30)
+                counting = games[game_id]["counting"]
+
+                if counting == 29:
+                    print("Move back")
+                    games[game_id]["old_pos"] = current_pos
+                    
+                    left_dist = min(
+                        is_blocked(sensors['w'])[1],
+                        is_blocked(sensors['nw'])[1],
+                    )
+                    right_dist = min(
+                        is_blocked(sensors['e'])[1],
+                        is_blocked(sensors['ne'])[1],
+                    )
+                    if left_dist < right_dist:
+                        print("rotate right")
+                        games[game_id]["turning"] = 'right'
+                    else:
+                        print("rotate left")
+                        games[game_id]["turning"] = 'left'
+                    
+                    return {"action": "move_backward"}
+
+            counting=0
+            counting = games[game_id]["counting"]
+
             games[game_id]["old_pos"] = current_pos
             return {"action": "move_forward"}
     else:
@@ -138,9 +170,17 @@ async def brain(request: Request):
             counting = games[game_id]["counting"]
 
             if counting == 29:
+                if games[game_id]['turning'] == "left":
+                    games[game_id]['turning'] = "right"
+                else:
+                    games[game_id]['turning'] = "left"
+            
+            if counting == 10:
                 print("Move back")
                 games[game_id]["old_pos"] = current_pos
                 return {"action": "move_backward"}
+            
+        
         if facing_good_dir and not forward_blocked:
             print("No longer blocked")
             games[game_id]["turning"] = None
@@ -150,17 +190,6 @@ async def brain(request: Request):
         print(f"rotate_{games[game_id]['turning']}")
         games[game_id]["old_rot"] = current_heading
         return {"action": f"rotate_{games[game_id]['turning']}"}
-        
-        # if turning == "left":
-        #     my_tank.turn_left()
-        # elif turning == "right":
-        #     my_tank.turn_right()
-        # if my_tank.my_heading()%90 == 0:
-        #     turning = False
-        #     counting = 0
-        #     oldpos = mypos
-    
-    # return {"action": "spin_left"}
 
 @app.post('/win')
 async def win(request: Request):

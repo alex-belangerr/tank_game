@@ -102,6 +102,8 @@ async def brain(request: Request):
             forward_blocked = is_blocked(sensors['n'], min_dist=45.)[0] or\
                 is_blocked(sensors['ne'], min_dist=40.)[0] or\
                 is_blocked(sensors['nw'], min_dist=40.)[0]
+            
+
             if forward_blocked:
                 print("time to turn")
                 left_dist = max(
@@ -122,6 +124,35 @@ async def brain(request: Request):
                 return {"action": "move_backward"}
             else:
                 print("Forward")
+
+                if dist(old_pos, current_pos) <= 0.000001:
+                    counting=1+(counting % 30)
+                    counting = games[game_id]["counting"]
+
+                    if counting == 29:
+                        print("Move back")
+                        games[game_id]["old_pos"] = current_pos
+                        
+                        left_dist = min(
+                            is_blocked(sensors['w'])[1],
+                            is_blocked(sensors['nw'])[1],
+                        )
+                        right_dist = min(
+                            is_blocked(sensors['e'])[1],
+                            is_blocked(sensors['ne'])[1],
+                        )
+                        if left_dist < right_dist:
+                            print("rotate right")
+                            games[game_id]["turning"] = 'right'
+                        else:
+                            print("rotate left")
+                            games[game_id]["turning"] = 'left'
+                        
+                        return {"action": "move_backward"}
+
+                counting=0
+                counting = games[game_id]["counting"]
+
                 games[game_id]["old_pos"] = current_pos
                 return {"action": "move_forward"}
         else:
@@ -133,7 +164,7 @@ async def brain(request: Request):
             print(is_blocked(sensors['n'], min_dist=70.))
             print(is_blocked(sensors['ne'], min_dist=40.))
             print(is_blocked(sensors['nw'], min_dist=40.))
-            good_rot = [ float(x) * pi/4 for x in range(8)]
+            good_rot = [float(x) * pi/4 for x in range(8)]
 
             facing_good_dir = any(
                 map(
@@ -148,9 +179,16 @@ async def brain(request: Request):
                 counting = games[game_id]["counting"]
 
                 if counting == 29:
+                    if games[game_id]['turning'] == "left":
+                        games[game_id]['turning'] = "right"
+                    else:
+                        games[game_id]['turning'] = "left"
+                
+                if counting == 10:
                     print("Move back")
                     games[game_id]["old_pos"] = current_pos
                     return {"action": "move_backward"}
+                
             
             if facing_good_dir and not forward_blocked:
                 print("No longer blocked")
