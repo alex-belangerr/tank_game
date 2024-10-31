@@ -22,7 +22,7 @@ pub(super) const HULL_RAY_MAX_DIST: f32 = TANK_SIZE * 4.;
 
 pub(super) const TURRET_VISION_ANGLE: f32 = PI / 12.;
 pub const NUM_OF_TURRET_RAY: usize = 5;
-pub(super) const TURRET_RAY_MAX_DIST: f32 = TANK_SIZE * 10.;
+pub(super) const TURRET_RAY_MAX_DIST: f32 = TANK_SIZE * 32.;
 
 #[derive(Debug, Clone, Copy, Serialize)]
 pub enum VisionHit {

@@ -10,7 +10,7 @@ use camera::resize_camera;
 #[cfg(feature = "cinematic")]
 use camera::update_camera_pos;
 #[cfg(feature = "cinematic")]
-use bevy::app::Update;
+use camera::cinematic_camera_scale;
 
 use map::MapPlugin;
 use tank::TankPlugin;
@@ -19,7 +19,7 @@ pub mod map;
 pub mod tank;
 mod camera;
 
-pub struct EnginePlugin(pub bool);
+pub struct EnginePlugin(pub bool, pub Option<String>);
 
 impl Plugin for EnginePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -35,7 +35,12 @@ impl Plugin for EnginePlugin {
                 app.add_plugins(RapierDebugRenderPlugin::default());
 
                 #[cfg(feature = "cinematic")]
-                app.add_systems(Update, update_camera_pos);
+                {
+                    app.add_systems(Update, update_camera_pos)
+                        .add_systems(Update, cinematic_camera_scale);
+                }
+                
+                #[cfg(not(feature = "cinematic"))]
                 app.add_systems(Update, resize_camera);
             },
             false => {
@@ -52,7 +57,7 @@ impl Plugin for EnginePlugin {
         };
         app
             .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(8.0))
-            .add_plugins(MapPlugin(self.0))
+            .add_plugins(MapPlugin(self.0, self.1.clone()))
             .add_plugins(TankPlugin(self.0));
     }
 }

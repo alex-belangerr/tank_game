@@ -310,7 +310,7 @@ pub fn generate_map(
 /// 
 /// # Fields
 /// - `bool`: A flag indicating whether to generate a minimal map(headless) or a complete map.
-pub struct MapPlugin(pub bool);
+pub struct MapPlugin(pub bool, pub Option<String>);
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -318,13 +318,23 @@ impl Plugin for MapPlugin {
             .init_asset::<Map>()
             .init_asset_loader::<MapLoader>()
 
-            .init_resource::<CurrentMap>()
 
-            .init_state::<Step>()
-            .add_systems(
-                Startup,
-                load_map.run_if(in_state(Step::LoadMap))
-            );
+            .init_state::<Step>();
+
+            match &self.1{
+                Some(selected_map) => {
+                    todo!()
+                },
+                None => {
+                    app
+                    .init_resource::<CurrentMap>()
+                    .add_systems(
+                        Startup,
+                        load_map.run_if(in_state(Step::LoadMap))
+                    );
+                },
+            };
+            
         match self.0 {
             false => {
                 app.add_systems(

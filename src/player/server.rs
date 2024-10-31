@@ -101,8 +101,6 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
 
             let mut json = HashMap::new();
             json.insert("game_id", game_id);
-            json.insert("server", "127.0.0.1");
-            json.insert("port", "8080");
 
             let response = client.post(&format!("http://{ip}:{port}/start_game"))
                 .json(&json)

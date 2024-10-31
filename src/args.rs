@@ -17,13 +17,16 @@ pub struct GameBuilder {
     pub render: bool,
     pub player_1: PlayerController<0>,
     pub player_2: PlayerController<1>,
+    pub map: Option<String>,
+
 }
 impl Default for GameBuilder {
     fn default() -> Self {
         Self {
             render: true,
             player_1: PlayerController::wasd(),
-            player_2: PlayerController::arrow()
+            player_2: PlayerController::arrow(),
+            map: None
         }
     }
 }
