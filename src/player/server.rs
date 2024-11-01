@@ -199,18 +199,23 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                             // todo!("Error handling")
                         },
                     }
-                    
-                    thread::sleep(Duration::from_millis(REQUEST_WAIT));
 
                     {
+                        
                         let Ok(kill_flag) = kill_flag.read() else {
                             continue;
                         };
+                        #[cfg(feature="debug")]
+                        println!("{kill_flag}");
 
                         if *kill_flag {
                             let Ok(win_cond) = win_cond.read() else {
                                 continue;
                             };
+
+                            
+                            #[cfg(feature="debug")]
+                            println!("time to die & {win_cond}");
     
                             let json = {
                                 let mut tmp = HashMap::new();
@@ -235,6 +240,8 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
                             };
                             return ;
                         }
+                    
+                        thread::sleep(Duration::from_millis(REQUEST_WAIT));
             
                     }
                 }
@@ -271,7 +278,8 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
         mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
             Some(join_handle) => {
-                let _result = join_handle.join();
+                // let _result = join_handle.join();
+                //Just assume the thread will join
                 true
             },
             None => {
@@ -294,7 +302,8 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
         mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
             Some(join_handle) => {
-                let _result = join_handle.join();
+                // let _result = join_handle.join();
+                //Just assume the thread will join
                 true
             },
             None => {
@@ -383,9 +392,13 @@ pub fn end_game_msg<const P_FLAG: u32>(
 
     match (player_tanks_count, other_tanks_count) {
         (0, _) => {
+            #[cfg(feature="debug")]
+            println!("{P_FLAG} team just lost");
             player_server.lose();
         },
         (_, 0) => {
+            #[cfg(feature="debug")]
+            println!("{P_FLAG} team just won");
             player_server.win();
         },
          _=> {
