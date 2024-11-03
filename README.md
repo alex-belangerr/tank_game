@@ -96,6 +96,14 @@ The `tank_game` engine allows customization of game settings through various com
 
 ---
 
+### `-map`
+- **Description**: Specifies the game map.
+- **Values**:
+  - `<name_of_map>.ron` – Name of map file.
+- **Default**: `None` (A random map is selected).
+
+---
+
 ## Usage Example
 
 ```bash
@@ -181,8 +189,6 @@ This structured data format enables the AI to make informed decisions based on t
 - **Description**: Called when the tank loses the game.
 - **Expected Input**: JSON object containing game data (optional).
 - **Response**: HTTP response with a 200 series code.
-
-# Todo
 
 # Game Engine To-Do List
 
