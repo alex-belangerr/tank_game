@@ -1,7 +1,7 @@
 //! This module handles the gameplay mechanics for tanks in a Bevy-based game,
 //! including their creation, movement, turret control, and associated instructions.
 
-use bevy::{app::{AppExit, Plugin, PostUpdate, Update}, prelude::{EventWriter, Query, With}, sprite::Material2dPlugin};
+use bevy::{app::{AppExit, Plugin, PostUpdate, Update}, prelude::{in_state, EventWriter, IntoSystemConfigs, Query, With}, sprite::Material2dPlugin};
 use bullet::{bullet_collision, create_bullet, create_bullet_minimal, reload_gun, update_bullet_pos, NewBullet};
 use gen::Tank;
 use instruction::{process_tank_instruction, Instruction};
@@ -9,6 +9,8 @@ use material::TankMaterial;
 use vision::{update_tank_vision_ray, update_turret_vision_ray, NUM_OF_HULL_RAY, NUM_OF_TURRET_RAY};
 
 use crate::player::PlayerID;
+
+use super::map::gen_state::Step;
 
 pub mod instruction;
 pub mod gen;
@@ -64,7 +66,9 @@ impl Plugin for TankPlugin{
             .add_systems(Update, update_bullet_pos)
             .add_systems(Update, bullet_collision)
             .add_systems(Update, reload_gun)
-            .add_systems(PostUpdate, end_game::<0, 1>);
+            .add_systems(PostUpdate, end_game::<0, 1>.run_if(
+                in_state(Step::Finished)
+            ));
         
         match self.0 {
             true => {
