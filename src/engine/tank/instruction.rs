@@ -1,9 +1,9 @@
 use std::f32::consts::PI;
 
-use bevy::{math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, EventWriter, GlobalTransform, Query, Res, Transform, With, Without}, time::Time};
+use bevy::{math::{Vec2, Vec3}, prelude::{Entity, Event, EventReader, EventWriter, GlobalTransform, Query, Res, Transform, With, Without}};
 use bevy_rapier2d::{plugin::RapierContext, prelude::{Collider, QueryFilter, ShapeCastOptions}};
 
-use crate::player::PlayerID;
+use crate::{engine::game_time::DeltaTime, player::PlayerID};
 
 use super::{bullet::NewBullet, gen::{GunState, Tank, Turret, TANK_SIZE}};
 
@@ -60,7 +60,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
 
     mut new_bullet: EventWriter<NewBullet>,
 
-    time: Res<Time>,
+    time: Res<DeltaTime>,
 
     rapier_context: Res<RapierContext>,
 
@@ -86,7 +86,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                         (Instruction::RotateLeft, [false, _, _]) => {
                             update_rotation::<false>(
                                 transform,
-                                -TANK_ROTATION_SPEED * time.delta_seconds(),
+                                -TANK_ROTATION_SPEED * time.0,
 
                                 &rapier_context,
                                 player_entity,
@@ -99,7 +99,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                         (Instruction::RotateRight, [false, _, _]) => {
                             update_rotation::<false>(
                                 transform,
-                                TANK_ROTATION_SPEED * time.delta_seconds(),
+                                TANK_ROTATION_SPEED * time.0,
 
                                 &rapier_context,
                                 player_entity,
@@ -113,7 +113,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                             transform.translation = new_move_pos::<false>(
                                 transform.translation,
                                 transform.up().as_vec3(),
-                                time.delta_seconds(),
+                                time.0,
 
                                 &rapier_context,
                                 player_entity,
@@ -127,7 +127,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                             transform.translation = new_move_pos::<false>(
                                 transform.translation,
                                 transform.down().as_vec3(),
-                                time.delta_seconds(),
+                                time.0,
 
                                 &rapier_context,
                                 player_entity,
@@ -144,7 +144,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                                 .expect("Tank has lost ref it's turret");
                             let turret_transform = turret_transform.0.as_mut();
 
-                            turret_transform.rotate_z(-TURRET_ROTATION_SPEED * time.delta_seconds());
+                            turret_transform.rotate_z(-TURRET_ROTATION_SPEED * time.0);
 
                             viable_actions[1] = true;
                         },
@@ -153,7 +153,7 @@ pub fn process_tank_instruction<const P_FLAG: u32>(
                                 .expect("Tank has lost ref it's turret");
                             let turret_transform = turret_transform.0.as_mut();
 
-                            turret_transform.rotate_z(TURRET_ROTATION_SPEED * time.delta_seconds());
+                            turret_transform.rotate_z(TURRET_ROTATION_SPEED * time.0);
 
                             viable_actions[1] = true;
                         },

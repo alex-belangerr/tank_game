@@ -1,9 +1,11 @@
+use std::time::Duration;
+
 use bevy::{
-    asset::AssetServer, math::{Quat, Vec2, Vec3}, prelude::{Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With}, sprite::SpriteBundle, time::Time
+    asset::AssetServer, math::{Quat, Vec2, Vec3}, prelude::{Commands, Component, Entity, Event, EventReader, GlobalTransform, Query, Res, Transform, With}, sprite::SpriteBundle
 };
 use bevy_rapier2d::{plugin::RapierContext, prelude::{Collider, QueryFilter, ShapeCastOptions}};
 
-use crate::engine::map::Wall;
+use crate::engine::{game_time::DeltaTime, map::Wall};
 
 use super::gen::{GunState, Tank, Turret};
 
@@ -23,13 +25,13 @@ pub struct Bullet(pub Entity);
 
 pub fn update_bullet_pos(
     mut bullet_query: Query<&mut Transform, With<Bullet>>,
-    time: Res<Time>
+    time: Res<DeltaTime>
 ){
     bullet_query.iter_mut()
         .for_each(|mut transform| {
             let transform = transform.as_mut();
 
-            transform.translation = transform.translation + transform.up() * time.delta_seconds() * BULLET_SPEED;
+            transform.translation = transform.translation + transform.up() * time.0 * BULLET_SPEED;
         });
 }
 pub fn create_bullet_minimal(
@@ -132,13 +134,13 @@ pub fn bullet_collision(
     }
 }
 
-pub fn reload_gun(mut turret_query: Query<&mut Turret>, time: Res<Time>) {
+pub fn reload_gun(mut turret_query: Query<&mut Turret>, time: Res<DeltaTime>) {
     turret_query.iter_mut()
         .for_each(|mut turret| {
             let turret = turret.as_mut();
             if let GunState::Reload(timer) = &mut turret.0 {
-                timer.tick(time.delta());
-                
+                timer.tick(Duration::from_millis((time.0 * 1000.) as u64));
+
                 if timer.finished() {
                     turret.0 = GunState::Ready;
                 }

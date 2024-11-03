@@ -94,14 +94,20 @@ The `tank_game` engine allows customization of game settings through various com
   - `<IP>:<Port>` – controls Player 2 using a REST API running on the specified IP address and port.
 - **Default**: `arrow` (Player 2 uses arrow keys by default).
 
----
-
 ### `-map`
 - **Description**: Specifies the game map.
 - **Values**:
   - `<name_of_map>.ron` – Name of map file.
   - `random` or `None` – Pick a random map.
 - **Default**: `None` (A random map is selected).
+
+### `-dt`, `-delta_time`, `-t`, or `-time`
+- **Description**: Sets the time step (delta time) between frames in milliseconds, allowing control over the game's simulation speed.
+- **Values**:
+  - Any positive whole number – specifies the time step in milliseconds (e.g., `16` for approximately 60 frames per second).
+  - `default` – resets to the default delta time between frames.
+- **Default**: The default delta time between frames (used if not specified).
+
 
 ---
 

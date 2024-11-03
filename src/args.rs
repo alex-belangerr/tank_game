@@ -18,6 +18,7 @@ pub struct GameBuilder {
     pub player_1: PlayerController<0>,
     pub player_2: PlayerController<1>,
     pub map: Option<String>,
+    pub delta_time: Option<u32>
 
 }
 impl Default for GameBuilder {
@@ -26,7 +27,8 @@ impl Default for GameBuilder {
             render: true,
             player_1: PlayerController::wasd(),
             player_2: PlayerController::arrow(),
-            map: None
+            map: None,
+            delta_time: None
         }
     }
 }
@@ -37,6 +39,7 @@ enum ReaderState{
     Player1,
     Player2,
     Map,
+    DeltaTime,
     None
 }
 
@@ -73,6 +76,8 @@ fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
             ("-p2" | "-player_2", ReaderState::None) => state = ReaderState::Player2,
 
             ("-map", ReaderState::None) => state = ReaderState::Map,
+            
+            ("-dt" | "-delta_time" | "-t" | "-time", ReaderState::None) => state = ReaderState::DeltaTime,
 
             ("t" | "true", ReaderState::Render) => {
                 builder.render = true;
@@ -188,6 +193,15 @@ fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
             },
             (asset_path, ReaderState::Map) => {
                 builder.map = Some(asset_path.to_string());
+                state = ReaderState::None;
+            },
+
+            ("default", ReaderState::DeltaTime) => {
+                builder.delta_time = None;
+                state = ReaderState::None;
+            },
+            (time, ReaderState::DeltaTime) => {
+                builder.delta_time = Some(time.parse().unwrap());
                 state = ReaderState::None;
             },
             

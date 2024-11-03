@@ -13,7 +13,13 @@ fn main() {
 
     let mut app = App::new();
 
-    app.add_plugins(engine::EnginePlugin(game_builder.render, game_builder.map.clone()));
+    app.add_plugins(
+        engine::EnginePlugin(
+            game_builder.render,
+            game_builder.map.clone(),
+            game_builder.delta_time.map(|val| (val as f32) / 1000.)
+        )
+    );
 
     app.add_plugins(PlayerControllerPlugin(game_builder.player_1, game_builder.player_2));
     
