@@ -245,7 +245,7 @@ This structured data format enables the AI to make informed decisions based on t
   - Trigger explosion sound when a tank or bullet is destroyed.
 
 ## Integration Tests
-- [ ] **Headless Mode Test**  
+- [X] **Headless Mode Test**  
   - Verify the game engine runs correctly in headless mode.
-- [ ] **Rendering Mode Test**  
+- [X] **Rendering Mode Test**  
   - Test if the game works correctly in rendering mode.
