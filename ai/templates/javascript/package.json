@@ -1,0 +1,18 @@
+{
+    "name": "tank-game-ai",
+    "version": "1.0.0",
+    "description": "Node.js template for building an AI agent for tank_game.",
+    "main": "main.js",
+    "scripts": {
+      "start": "node main.js"
+    },
+    "dependencies": {
+      "express": "^4.17.1",
+      "body-parser": "^1.19.0",
+      "commander": "^9.0.0"
+    },
+    "engines": {
+      "node": ">=14.0.0"
+    }
+  }
+  
