@@ -100,6 +100,7 @@ The `tank_game` engine allows customization of game settings through various com
 - **Description**: Specifies the game map.
 - **Values**:
   - `<name_of_map>.ron` – Name of map file.
+  - `random` or `None` – Pick a random map.
 - **Default**: `None` (A random map is selected).
 
 ---

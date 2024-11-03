@@ -182,6 +182,10 @@ fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
             },
 
             
+            ("random" | "None", ReaderState::Map) => {
+                builder.map = None;
+                state = ReaderState::None;
+            },
             (asset_path, ReaderState::Map) => {
                 builder.map = Some(asset_path.to_string());
                 state = ReaderState::None;
