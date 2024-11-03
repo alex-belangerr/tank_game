@@ -36,6 +36,7 @@ enum ReaderState{
     Render,
     Player1,
     Player2,
+    Map,
     None
 }
 
@@ -70,6 +71,8 @@ fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
             },
             ("-p1" | "-player_1", ReaderState::None) => state = ReaderState::Player1,
             ("-p2" | "-player_2", ReaderState::None) => state = ReaderState::Player2,
+
+            ("-map", ReaderState::None) => state = ReaderState::Map,
 
             ("t" | "true", ReaderState::Render) => {
                 builder.render = true;
@@ -175,6 +178,12 @@ fn read_args<'a, I: Iterator<Item = String>>(args: I) -> GameBuilder {
                 };
 
                 builder.player_2 = tmp;
+                state = ReaderState::None;
+            },
+
+            
+            (asset_path, ReaderState::Map) => {
+                builder.map = Some(asset_path.to_string());
                 state = ReaderState::None;
             },
             

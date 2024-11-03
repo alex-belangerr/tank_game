@@ -99,7 +99,7 @@ pub fn resize_camera(
 ) {
     let Some(map) = map_res.get(
         {
-            let Some(current_map) = &current_map.0 else {
+            let CurrentMap::Handle(current_map) = current_map.as_ref() else {
                 return ;
             };
 

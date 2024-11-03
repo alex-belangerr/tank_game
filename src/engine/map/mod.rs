@@ -1,10 +1,10 @@
 //! This module manages map loading and generation in a Bevy-based game,
 //! including wall creation and player spawn point selection for tank gameplay.
-use std::fs;
+use std::{fs, mem, path::Path};
 
 use bevy::{
     app::{Plugin, Startup, Update
-    }, asset::{Asset, AssetApp, AssetServer, Assets, Handle}, color::LinearRgba, math::Vec3, prelude::{
+    }, asset::{Asset, AssetApp, AssetServer, Assets, Handle}, color::LinearRgba, log::warn, math::Vec3, prelude::{
         in_state, AppExtStates, Camera2dBundle, Commands, Component, GlobalTransform, Image, InheritedVisibility, IntoSystemConfigs, Mesh, NextState, Res, ResMut, Resource, Transform, ViewVisibility, Visibility
     }, reflect::Reflect, sprite::Sprite
 };
@@ -38,8 +38,18 @@ pub struct Map{
 /// 
 /// # Fields
 /// - `0`: An optional handle to the current map asset.
-#[derive(Debug, Clone, Resource, Default)]
-pub struct CurrentMap(pub Option<Handle<Map>>);
+#[derive(Debug, Clone, Resource)]
+pub enum CurrentMap{
+    None,
+    AssetPath(String),
+    Handle(Handle<Map>)
+}
+
+impl Default for CurrentMap {
+    fn default() -> Self {
+        CurrentMap::None
+    }
+}
 
 pub const WALL_SIZE: f32 = 32.;
 
@@ -59,20 +69,41 @@ pub fn load_map(
     mut current_map: ResMut<CurrentMap>,
     mut next_state: ResMut<NextState<Step>>
 ){
-    let map_folder: Vec<String> = fs::read_dir("assets/maps")
-        .expect("Unable to load \"assets/maps\"")
-        .into_iter()
-        .filter(|file| file.is_ok())
-        .map(|file| file.unwrap())
-        .map(|file| format!("{}", file.file_name().to_str().unwrap()))
-        .collect();
-
-    let i: usize = rand::random::<usize>();
-
-    let map: Handle<Map> = asset_server.load(format!("maps/{}", map_folder[i % map_folder.len()]));
-
     let current_map = current_map.as_mut();
-    current_map.0 = Some(map);
+    let mut selected_map = match &current_map {
+        CurrentMap::None => {
+            let map_folder: Vec<String> = fs::read_dir("assets/maps")
+                .expect("Unable to load \"assets/maps\"")
+                .into_iter()
+                .filter(|file| file.is_ok())
+                .map(|file| file.unwrap())
+                .map(|file| format!("{}", file.file_name().to_str().unwrap()))
+                .collect();
+
+            let i: usize = rand::random::<usize>();
+
+            CurrentMap::Handle(
+                asset_server.load(
+                    format!("maps/{}", map_folder[i % map_folder.len()])
+                )
+            )
+        },
+        CurrentMap::AssetPath(map_name) => {
+            if !Path::new(&format!("assets/maps/{}", map_name)).exists() {
+                warn!("Map does not exist ({})", map_name);
+                panic!();
+            }
+
+            CurrentMap::Handle(
+                asset_server.load(
+                    format!("maps/{}", map_name)
+                )
+            )
+        },
+        CurrentMap::Handle(_) => panic!("Invalid state when loading a map"),
+    };
+    
+    mem::swap(current_map, &mut selected_map);
 
     next_state.set(Step::GenerateMap);
 }
@@ -93,7 +124,10 @@ pub fn generate_minimal_map(
     mut next_state: ResMut<NextState<Step>>
 ){
     let current_map = current_map.as_ref();
-    let map_id = current_map.0.clone().unwrap().id();
+    let CurrentMap::Handle(map_id) = current_map else {
+        todo!()
+    };
+    let map_id = map_id.id();
 
     let Some(map) = maps.as_ref().get(map_id) else {
         return;
@@ -189,7 +223,10 @@ pub fn generate_map(
     mut next_state: ResMut<NextState<Step>>
 ){
     let current_map = current_map.as_ref();
-    let map_id = current_map.0.clone().unwrap().id();
+    let CurrentMap::Handle(map_id) = current_map else {
+        todo!()
+    };
+    let map_id = map_id.id();
 
     let Some(map) = maps.as_ref().get(map_id) else {
         return;
@@ -323,17 +360,17 @@ impl Plugin for MapPlugin {
 
             match &self.1{
                 Some(selected_map) => {
-                    todo!()
+                    app.insert_resource(CurrentMap::AssetPath(selected_map.clone()));
                 },
                 None => {
-                    app
-                    .init_resource::<CurrentMap>()
-                    .add_systems(
-                        Startup,
-                        load_map.run_if(in_state(Step::LoadMap))
-                    );
+                    app.init_resource::<CurrentMap>();
                 },
             };
+
+            app.add_systems(
+                    Startup,
+                    load_map.run_if(in_state(Step::LoadMap))
+                );
             
         match self.0 {
             false => {
