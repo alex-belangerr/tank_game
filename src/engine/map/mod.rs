@@ -133,6 +133,7 @@ pub fn generate_minimal_map(
         return;
     };
 
+    #[cfg(feature = "debug")]
     println!("{map:?}");
     // generate walls & pick spawn points
     type WallBundle = (Wall,Transform,GlobalTransform, Collider);
