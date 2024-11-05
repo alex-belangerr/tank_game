@@ -13,11 +13,13 @@ bevy = {version = "0.14.2", features = ["bevy_state", "bevy_sprite"]}
 bevy_rapier2d = { version = "*", features = [ "simd-stable", "debug-render-2d" ] }
 
 ron = "0.8"
-serde = { version = "1", features = ["derive"] }
+serde = { version = "*", features = ["derive"] }
 
 rand = "0.8.5"
 
 reqwest = { version = "0.11", features = ["json", "blocking"]}
+
+uuid = "1.11.0"
 
 [profile.dev.package."*"]
 opt-level = 3
