@@ -43,17 +43,18 @@ impl<const P_FLAG_1: u32, const P_FLAG_2: u32> Plugin for PlayerControllerPlugin
         }
 
         // Copy values over
-        app.add_plugins(self.0)
-            .add_plugins(self.1);
+        app.add_plugins(self.0.clone())
+            .add_plugins(self.1.clone());
     }
 }
 
 /// Represents the type of control a player can have.
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum PlayerController<const P_FLAG: u32> {
     Server{
         ip: IpAddr,
-        port: u16
+        port: u16,
+        game_id: String,
     },
     Control{
         move_forward: KeyCode,
@@ -99,8 +100,8 @@ impl<const P_FLAG: u32> Plugin for PlayerController<P_FLAG> {
     fn build(&self, app: &mut bevy::prelude::App) {
         println!("ADDING PLAYER PLUGIN {P_FLAG}");
         match &self {
-            PlayerController::Server { ip, port  } => { // todo!() replace placeholder with a higher order function that interacts with server
-                app.insert_resource::<PlayerServer<P_FLAG>>(PlayerServer::new(*ip, *port, "This is a game id"))
+            PlayerController::Server { ip, port, game_id  } => { // todo!() replace placeholder with a higher order function that interacts with server
+                app.insert_resource::<PlayerServer<P_FLAG>>(PlayerServer::new(*ip, *port, &game_id))
                     .add_systems(Update, server_input::<P_FLAG>)
                     .add_systems(Update, update_player_data::<P_FLAG>)
                     .add_systems(

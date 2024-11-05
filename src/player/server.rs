@@ -277,7 +277,7 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
 
         mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
-            Some(join_handle) => {
+            Some(_join_handle) => {
                 // let _result = join_handle.join();
                 //Just assume the thread will join
                 true
@@ -301,7 +301,7 @@ impl<const P_FLAG: u32> PlayerServer<P_FLAG>{
         
         mem::swap(&mut *server, &mut tmp_server);
         match tmp_server{
-            Some(join_handle) => {
+            Some(_join_handle) => {
                 // let _result = join_handle.join();
                 //Just assume the thread will join
                 true
