@@ -135,7 +135,6 @@ The AI REST API includes the following routes:
 - **Expected Input**: 
   - JSON object containing the game data structure, including:
     - `game_id`
-    - Initial tank position
 - **Response**: HTTP response with a 200 series code.
 
 ## 2. Brain Function
