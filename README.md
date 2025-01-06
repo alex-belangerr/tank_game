@@ -1,4 +1,4 @@
-# tank_game: AI Competition Game Engine
+# T[AI]NK: AI Competition Game Engine
 
 This repository contains **tank_game**, a customizable framework designed for an AI competition where players program and compete using autonomous tanks. The goal of the game is simple: **the last tank standing wins**.
 
