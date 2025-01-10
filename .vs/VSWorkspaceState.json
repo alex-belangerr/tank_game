@@ -3,10 +3,11 @@
     "",
     "\\ai",
     "\\ai\\templates",
-    "\\ai\\templates\\csharp",
-    "\\ai\\templates\\javascript",
     "\\ai\\templates\\python",
-    "\\src\\engine"
+    "\\docs",
+    "\\src",
+    "\\src\\engine",
+    "\\src\\engine\\tank"
   ],
   "PreviewInSolutionExplorer": false
 }
