@@ -16,7 +16,7 @@ async def start_game(request: Request):
         print("No game id")
         return json.dumps({'error': 'Game ID is required'}), 400
 
-    games[game_id] = {
+    games[game_id] = { #initialize the game id to help with brain
         'status': 'active',
         'counting': 0,
         'turning': False,
@@ -28,6 +28,11 @@ async def start_game(request: Request):
     print(f"New game: {game_id}")
 
     return {'message': f'Game {game_id} started successfully', 'game_id': game_id}
+
+#ADDING HELPER FUNCTIONS
+def dist(p1, p2): #distance between two points returns a float
+    return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
+
 
 
 @app.post('/brain')
