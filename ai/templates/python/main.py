@@ -33,6 +33,31 @@ async def start_game(request: Request):
 def dist(p1, p2): #distance between two points returns a float
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
 
+def is_blocked(sensor, min_dist=30.0):
+    #check if a sensor is blocked within a specified distance.
+    if sensor is None:
+        return False, -1.0  # No data
+    value = next(iter(sensor.values()))  # Sensor value
+    return value < min_dist, value
+
+
+def decide_turn_direction(sensors):
+    #determine whether to turn left or right based on sensor data.
+    left_dist = max(is_blocked(sensors["nw"])[1], is_blocked(sensors["w"])[1], is_blocked(sensors["sw"])[1])
+    right_dist = max(is_blocked(sensors["ne"])[1], is_blocked(sensors["e"])[1], is_blocked(sensors["se"])[1])
+    
+    if left_dist < right_dist:
+        return "rotate_right"
+    return "rotate_left"
+
+def aim_turret(turret_vision): #aim the turret towards the enemy
+    for idx, vision in enumerate(turret_vision):
+        if vision and "Enemy" in vision:
+            if idx < len(turret_vision) // 2:
+                return "spin_left"
+            return "spin_right"
+    return None
+
 
 
 @app.post('/brain')
@@ -41,6 +66,8 @@ async def brain(request: Request):
     game_id = data.get('game_id')
 
     # Check if game_id exists
+    games[game_id]['turret_state'] = True
+
     if not game_id:
         return {'error': 'Game ID is required'}, 400
     if game_id not in games:
@@ -65,8 +92,10 @@ async def brain(request: Request):
             "w": data["hull_vision"][6],
             "nw": data["hull_vision"][7]
         }
-    
 
+        if is_blocked(sensors["n"])[0]:
+            return {"action":"rotate_right"}
+        return {"action":"move_forward"}
 
 
 @app.post('/win')
