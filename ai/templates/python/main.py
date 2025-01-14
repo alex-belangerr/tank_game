@@ -30,6 +30,7 @@ async def start_game(request: Request):
     return {'message': f'Game {game_id} started successfully', 'game_id': game_id}
 
 #ADDING HELPER FUNCTIONS
+
 def dist(p1, p2): #distance between two points returns a float
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
 
@@ -47,7 +48,9 @@ def decide_turn_direction(sensors):
     right_dist = max(is_blocked(sensors["ne"])[1], is_blocked(sensors["e"])[1], is_blocked(sensors["se"])[1])
     
     if left_dist < right_dist:
+        print("right")
         return "rotate_right"
+    print("left")
     return "rotate_left"
 
 def aim_turret(turret_vision): #aim the turret towards the enemy
@@ -81,7 +84,9 @@ async def brain(request: Request):
     current_heading = data["rot"]
     current_pos = data["pos"]
     if games[game_id]['turret_state']:
+        
         games[game_id]['turret_state'] = False
+        
         sensors = {
             "n": data["hull_vision"][0],
             "ne": data["hull_vision"][1],
@@ -93,8 +98,11 @@ async def brain(request: Request):
             "nw": data["hull_vision"][7]
         }
 
-        if is_blocked(sensors["n"])[0]:
-            return {"action":"rotate_right"}
+        
+        if is_blocked(sensors["n"])[0] or is_blocked(sensors["ne"])[0] or is_blocked(sensors["nw"])[0]:
+            print("turning")
+            return {"action":decide_turn_direction(sensors)}
+        print("moving forward")
         return {"action":"move_forward"}
 
 
