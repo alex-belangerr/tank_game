@@ -34,7 +34,7 @@ async def start_game(request: Request):
 def dist(p1, p2): #distance between two points returns a float
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
 
-def is_blocked(sensor, min_dist=30.0):
+def is_blocked(sensor, min_dist=40.0):
     #check if a sensor is blocked within a specified distance.
     if sensor is None:
         return False, -1.0  # No data
@@ -75,14 +75,41 @@ async def brain(request: Request):
         return {'error': 'Game ID is required'}, 400
     if game_id not in games:
         return {'error': 'Game not found'}, 404
-    
-    counting = games[game_id]["counting"]
-    turning = games[game_id]["turning"]
-    old_pos = games[game_id]["old_pos"]
-    old_rot = games[game_id]["old_rot"]
+        # Always spin turret
+    #turret_action = "spin_right"
 
-    current_heading = data["rot"]
-    current_pos = data["pos"]
+    # Check turret vision for enemies
+    #turret_vision = data.get("turret_vision", [])
+    #if "Enemy" in turret_vision:
+     #   return {"action": "fire"}
+    
+
+    turret_vision = data["turret_vision"]
+
+    left_vision = any(
+        map(
+            lambda x: "Enemy" in x if x is not None else False,
+            turret_vision[0:2]
+        )
+    )
+    center_vision = "Enemy" in turret_vision[2] if turret_vision[2] is not None else False
+    right_vision = any(
+        map(
+            lambda x: "Enemy" in x if x is not None else False,
+            turret_vision[3:]
+        )
+    )
+
+    if center_vision:
+        return {"action": "shoot"}
+    elif left_vision:
+        return {"action": "spin_left"}
+    elif right_vision:
+        return {"action": "spin_right"}
+
+    #always spin turret if no enemy is detected
+    #return {"action": "spin_left"}
+
     if games[game_id]['turret_state']:
         
         games[game_id]['turret_state'] = False
@@ -98,13 +125,12 @@ async def brain(request: Request):
             "nw": data["hull_vision"][7]
         }
 
-        
+    # Obstacle avoidance
         if is_blocked(sensors["n"])[0] or is_blocked(sensors["ne"])[0] or is_blocked(sensors["nw"])[0]:
-            print("turning")
-            return {"action":decide_turn_direction(sensors)}
-        print("moving forward")
-        return {"action":"move_forward"}
+            return {"action": decide_turn_direction(sensors)}
 
+        return {"action": "move_forward"}
+    
 
 @app.post('/win')
 async def win(request: Request):
