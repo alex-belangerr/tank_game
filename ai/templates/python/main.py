@@ -69,7 +69,7 @@ async def brain(request: Request):
     game_id = data.get('game_id')
 
     # Check if game_id exists
-    games[game_id]['turret_state'] = True
+    # games[game_id]['turret_state'] = True
 
     if not game_id:
         return {'error': 'Game ID is required'}, 400
@@ -84,31 +84,7 @@ async def brain(request: Request):
      #   return {"action": "fire"}
     
 
-    turret_vision = data["turret_vision"]
 
-    left_vision = any(
-        map(
-            lambda x: "Enemy" in x if x is not None else False,
-            turret_vision[0:2]
-        )
-    )
-    center_vision = "Enemy" in turret_vision[2] if turret_vision[2] is not None else False
-    right_vision = any(
-        map(
-            lambda x: "Enemy" in x if x is not None else False,
-            turret_vision[3:]
-        )
-    )
-
-    if center_vision:
-        return {"action": "shoot"}
-    elif left_vision:
-        return {"action": "spin_left"}
-    elif right_vision:
-        return {"action": "spin_right"}
-
-    #always spin turret if no enemy is detected
-    #return {"action": "spin_left"}
 
     if games[game_id]['turret_state']:
         
@@ -130,6 +106,33 @@ async def brain(request: Request):
             return {"action": decide_turn_direction(sensors)}
 
         return {"action": "move_forward"}
+    else:
+        games[game_id]['turret_state'] = True
+        turret_vision = data["turret_vision"]
+
+        left_vision = any(
+            map(
+                lambda x: "Enemy" in x if x is not None else False,
+                turret_vision[0:2]
+            )
+        )
+        center_vision = "Enemy" in turret_vision[2] if turret_vision[2] is not None else False
+        right_vision = any(
+            map(
+                lambda x: "Enemy" in x if x is not None else False,
+                turret_vision[3:]
+            )
+        )
+
+        if center_vision:
+            return {"action": "shoot"}
+        elif left_vision:
+            return {"action": "spin_left"}
+        elif right_vision:
+            return {"action": "spin_right"}
+        
+        return {"action": "spin_left"}
+        
     
 
 @app.post('/win')
