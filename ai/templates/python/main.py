@@ -34,7 +34,7 @@ async def start_game(request: Request):
 def dist(p1, p2): #distance between two points returns a float
     return (p1[0]-p2[0])**2 + (p1[1]-p2[1])**2
 
-def is_blocked(sensor, min_dist=40.0):
+def is_blocked(sensor, min_dist=35.0):
     #check if a sensor is blocked within a specified distance.
     if sensor is None:
         return False, -1.0  # No data
